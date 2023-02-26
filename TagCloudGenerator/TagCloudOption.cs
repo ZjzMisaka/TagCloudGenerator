@@ -15,9 +15,11 @@ namespace TagCloudGenerator
         public RotateType RotateType { get; set; }
         public float RandomRotateFrom { get; set; }
         public float RandomRotateTo { get; set; }
+        public int Margin { get; set; }
         public List<int>? RotateList { get; set; }
         public List<Color>? FontColorList { get; set; }
         public FontFamily FontFamily { get; set; }
+        public (float, float) FontSizeRange { get; set; }
 
         public TagCloudOption()
         {
@@ -25,6 +27,7 @@ namespace TagCloudGenerator
             RotateList = new List<int>() { 0 };
             FontColorList = new List<Color>() { Color.Black };
             FontFamily = new FontFamily("Comic Sans MS");
+            Margin = 0;
         }
     }
 }

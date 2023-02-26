@@ -18,7 +18,7 @@ namespace TagCloudGenerator
     {
         Bitmap bmp;
 
-        public TagCloud(int width, int height, Dictionary<string, int> tagDic, TagCloudOption tagCloudOption)
+        public TagCloud(int width, int height, Dictionary<string, float> tagDic, TagCloudOption tagCloudOption)
         {
             if (tagCloudOption.RotateList == null)
             {
@@ -28,6 +28,46 @@ namespace TagCloudGenerator
             if (tagCloudOption.FontColorList == null)
             {
                 throw new Exception("FontColorList is null");
+            }
+
+            if (tagCloudOption.FontSizeRange != (0, 0))
+            {
+                float minFontSize = tagCloudOption.FontSizeRange.Item1;
+                float maxFontSize = tagCloudOption.FontSizeRange.Item2;
+
+                float range = maxFontSize - minFontSize;
+
+                float min = tagDic.Values.ElementAt(0);
+                float max = tagDic.Values.ElementAt(0);
+                foreach (int count in tagDic.Values)
+                {
+                    if (count < min)
+                    {
+                        min = count;
+                    }
+                    if (count > max)
+                    {
+                        max = count;
+                    }
+                }
+
+                if ((max - min) > range)
+                {
+                    float ratio = range / (max - min);
+                    foreach (string key in tagDic.Keys)
+                    {
+                        tagDic[key] = tagDic[key] * ratio;
+                    }
+                }
+
+                if (min < minFontSize)
+                {
+                    float needAdd = minFontSize - min;
+                    foreach (string key in tagDic.Keys)
+                    {
+                        tagDic[key] = tagDic[key] + needAdd;
+                    }
+                }
             }
 
             bmp = new Bitmap(width, height);
@@ -61,6 +101,8 @@ namespace TagCloudGenerator
 
                 SolidBrush fontBrush = new SolidBrush(tagCloudOption.FontColorList[rnd.Next(0, tagCloudOption.FontColorList.Count)]);
 
+                int outOfBoundsFailedCount = 0;
+
                 while (true)
                 {
                     Bitmap newBmp = new Bitmap(width, height);
@@ -71,8 +113,27 @@ namespace TagCloudGenerator
                     SizeF textSize = graphics.MeasureString(tag, font);
                     (float, float) point = spiral.GetPoint(step);
                     ++step;
-                    graphics.DrawString(tag, font, fontBrush, -textSize.Width / 2 + point.Item1, -textSize.Height / 2 + point.Item2);
+                    graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2);
+
+                    for (int i = 1; i <= tagCloudOption.Margin; ++i)
+                    {
+                        graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 - i, point.Item2 - textSize.Height / 2);
+                        graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 + i, point.Item2 - textSize.Height / 2);
+                        graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2 - i);
+                        graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2 + i);
+                    }
+
                     graphics.Dispose();
+
+                    if (HasOutOfBounds(point, textSize, width, height))
+                    {
+                        ++outOfBoundsFailedCount;
+                        if (outOfBoundsFailedCount == 10000)
+                        {
+                            throw new Exception("Image size is too small");
+                        }
+                        continue;
+                    }
 
                     if (HasOverlap(bmp, newBmp, width, height, backgroundRgb))
                     {
@@ -92,6 +153,40 @@ namespace TagCloudGenerator
         public Bitmap Get()
         {
             return bmp;
+        }
+
+        private bool HasOutOfBounds((float, float) point, SizeF textSize, int width, int height)
+        {
+            if (point.Item1 >= 0)
+            {
+                if (point.Item1 + textSize.Width / 2 > width / 2)
+                {
+                    return true;
+                }
+            }
+            else if (point.Item1 < 0)
+            {
+                if (point.Item1 - textSize.Width / 2 < -width / 2)
+                {
+                    return true;
+                }
+            }
+            if (point.Item2 >= 0)
+            {
+                if (point.Item2 + textSize.Height / 2 > height / 2)
+                {
+                    return true;
+                }
+            }
+            else if (point.Item2 < 0)
+            {
+                if (point.Item2 - textSize.Height / 2 < -height / 2)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         unsafe private bool HasOverlap(Bitmap origBmp, Bitmap newBmp, int width, int height, (int, int, int) backgroundRgb)

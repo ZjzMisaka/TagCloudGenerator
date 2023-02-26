@@ -30,7 +30,7 @@ namespace TagCloudGeneratorTest
         {
             InitializeComponent();
 
-            Dictionary<string, int> tagDic = new Dictionary<string, int>();
+            Dictionary<string, float> tagDic = new Dictionary<string, float>();
             tagDic["yuri"] = 80;
             tagDic["CGDCT"] = 80;
             tagDic["NO"] = 70;
@@ -70,7 +70,9 @@ namespace TagCloudGeneratorTest
             collection.AddFontFile(@"H:\AnimeReport\Fonts\Lolita.ttf");
             FontFamily fontFamily = new FontFamily("Lolita", collection);
             tagCloudOption.FontFamily = fontFamily;
-            Bitmap bmp = new TagCloud(1920, 1080, tagDic, tagCloudOption).Get();
+            tagCloudOption.Margin = 3;
+            tagCloudOption.FontSizeRange = (16, 50);
+            Bitmap bmp = new TagCloud(1000, 1000, tagDic, tagCloudOption).Get();
             using (MemoryStream memory = new MemoryStream())
             {
                 bmp.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
