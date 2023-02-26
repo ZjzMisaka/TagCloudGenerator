@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,7 +35,7 @@ namespace TagCloudGenerator
 
             Graphics graphicsBmp = Graphics.FromImage(bmp);
             SolidBrush brush = new SolidBrush(Color.AliceBlue);
-            string backgroundHex = HexConverter(brush.Color);
+            (int, int, int) backgroundRgb = (brush.Color.R, brush.Color.G, brush.Color.B);
             graphicsBmp.FillRectangle(brush, 0, 0, width, height);
             graphicsBmp.Dispose();
 
@@ -53,13 +56,12 @@ namespace TagCloudGenerator
                     rotate = rnd.Next((int)tagCloudOption.RandomRotateFrom, (int)tagCloudOption.RandomRotateTo);
                 }
 
-                
+
                 Font font = new Font(tagCloudOption.FontFamily != null ? tagCloudOption.FontFamily : new FontFamily("Comic Sans MS"), tagDic[tag]);
 
                 SolidBrush fontBrush = new SolidBrush(tagCloudOption.FontColorList[rnd.Next(0, tagCloudOption.FontColorList.Count)]);
 
-                bool isContinue = true;
-                while (isContinue)
+                while (true)
                 {
                     Bitmap newBmp = new Bitmap(width, height);
                     Graphics graphics = Graphics.FromImage(newBmp);
@@ -69,28 +71,20 @@ namespace TagCloudGenerator
                     SizeF textSize = graphics.MeasureString(tag, font);
                     (float, float) point = spiral.GetPoint(step);
                     ++step;
-                    graphics.DrawString(tag, font, fontBrush, - textSize.Width / 2 + point.Item1, - textSize.Height / 2 + point.Item2);
+                    graphics.DrawString(tag, font, fontBrush, -textSize.Width / 2 + point.Item1, -textSize.Height / 2 + point.Item2);
                     graphics.Dispose();
 
-                    isContinue = false;
-                    List<(int, int)> newPointList = GetPointList(newBmp, width, height, backgroundHex);
-                    foreach ((int, int) pointStr in newPointList)
+                    if (HasOverlap(bmp, newBmp, width, height, backgroundRgb))
                     {
-                        if (usedPointList.Contains(pointStr))
-                        {
-                            isContinue = true;
-                            break;
-                        }
+                        continue;
                     }
-                    if (isContinue == false)
-                    {
-                        graphicsBmp = Graphics.FromImage(bmp);
-                        graphicsBmp.TranslateTransform(newBmp.Width / 2, newBmp.Height / 2);
-                        graphicsBmp.RotateTransform(rotate);
-                        graphicsBmp.DrawString(tag, font, fontBrush, -textSize.Width / 2 + point.Item1, -textSize.Height / 2 + point.Item2);
-                        graphicsBmp.Dispose();
-                        usedPointList.AddRange(newPointList);
-                    }
+
+                    graphicsBmp = Graphics.FromImage(bmp);
+                    graphicsBmp.TranslateTransform(newBmp.Width / 2, newBmp.Height / 2);
+                    graphicsBmp.RotateTransform(rotate);
+                    graphicsBmp.DrawString(tag, font, fontBrush, -textSize.Width / 2 + point.Item1, -textSize.Height / 2 + point.Item2);
+                    graphicsBmp.Dispose();
+                    break;
                 }
             }
         }
@@ -100,26 +94,63 @@ namespace TagCloudGenerator
             return bmp;
         }
 
-        private string HexConverter(System.Drawing.Color c)
+        unsafe private bool HasOverlap(Bitmap origBmp, Bitmap newBmp, int width, int height, (int, int, int) backgroundRgb)
         {
-            return "#" + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
-        }
+            byte[] data1 = GetByteArray(origBmp);
+            byte[] data2 = GetByteArray(newBmp);
 
-        private List<(int, int)> GetPointList(Bitmap newBmp, int width, int height, string backgroundHex)
-        {
-            List<(int, int)> pointList = new List<(int, int)>();
-            for (int i = 0; i < width; ++i)
+            // 判断两个字节数组中红色像素部分是否重叠
+            bool hasOverlap = false;
+            fixed (byte* ptr1 = data1, ptr2 = data2)
             {
-                for (int j = 0; j < height; ++j)
+                // 按行遍历像素
+                for (int y = 0; y < height; y++)
                 {
-                    if (HexConverter(newBmp.GetPixel(i, j)) != backgroundHex)
+                    // 获取指向当前行的指针
+                    byte* row1 = ptr1 + y * width * 3;
+                    byte* row2 = ptr2 + y * width * 3;
+
+                    // 按像素遍历
+                    for (int x = 0; x < width; x++)
                     {
-                        pointList.Add((i, j));
+                        // 获取当前像素的RGB值
+                        byte r1 = row1[x * 3 + 2];
+                        byte g1 = row1[x * 3 + 1];
+                        byte b1 = row1[x * 3];
+                        byte r2 = row2[x * 3 + 2];
+                        byte g2 = row2[x * 3 + 1];
+                        byte b2 = row2[x * 3];
+
+                        // 判断当前像素是否为底色
+                        if ((r1 != backgroundRgb.Item1 || g1 != backgroundRgb.Item2 || b1 != backgroundRgb.Item3)
+                            && (r2 != backgroundRgb.Item1 || g2 != backgroundRgb.Item2 || b2 != backgroundRgb.Item3))
+                        {
+                            hasOverlap = true;
+                            break;
+                        }
+                    }
+
+                    if (hasOverlap)
+                    {
+                        break;
                     }
                 }
             }
 
-            return pointList;
-        } 
+            return hasOverlap;
+        }
+
+        // 将Bitmap转换为字节数组的函数
+        private byte[] GetByteArray(Bitmap bmp)
+        {
+            Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            IntPtr ptr = bmpData.Scan0;
+            int size = bmpData.Stride * bmp.Height;
+            byte[] data = new byte[size];
+            Marshal.Copy(ptr, data, 0, size);
+            bmp.UnlockBits(bmpData);
+            return data;
+        }
     }
 }

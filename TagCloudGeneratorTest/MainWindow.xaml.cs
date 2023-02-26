@@ -34,27 +34,43 @@ namespace TagCloudGeneratorTest
             tagDic["yuri"] = 80;
             tagDic["CGDCT"] = 80;
             tagDic["NO"] = 70;
+            tagDic["InitializeComponent"] = 70;
+            tagDic["oyama mahiro"] = 65;
             tagDic["Hello"] = 60;
             tagDic["World"] = 50;
             tagDic["Apple"] = 40;
             tagDic["1024"] = 40;
             tagDic["1"] = 20;
             tagDic["or"] = 18;
+            tagDic["MainWindow"] = 16;
+            tagDic["Window"] = 16;
+            tagDic["PrivateFontCollection"] = 16;
             tagDic["WTF"] = 16;
             tagDic["2048"] = 16;
+            tagDic["memory"] = 12;
+            tagDic["bitmapimage"] = 12;
+            tagDic["tagCloudOption"] = 12;
+            tagDic["FontFamily"] = 12;
+            tagDic["TagCloud"] = 12;
             tagDic["and"] = 12;
+            tagDic["GTX2080"] = 10;
+            tagDic["GTX3080"] = 10;
+            tagDic["GTX4080"] = 10;
+            tagDic["Title"] = 10;
+            tagDic["TotalSeconds"] = 10;
+            tagDic["ToString"] = 10;
             tagDic["can't"] = 8;
-            tagDic["ok"] = 7;
+            tagDic["okokoookokokok"] = 7;
             
             DateTime dt = DateTime.Now;
             TagCloudOption tagCloudOption = new TagCloudOption();
-            tagCloudOption.RotateList = new List<int> { 15, -15 };
+            tagCloudOption.RotateList = new List<int> { 0, 90 };
             tagCloudOption.FontColorList = new List<Color> { Color.Red, Color.Orange, Color.OrangeRed };
             PrivateFontCollection collection = new PrivateFontCollection();
             collection.AddFontFile(@"H:\AnimeReport\Fonts\Lolita.ttf");
             FontFamily fontFamily = new FontFamily("Lolita", collection);
             tagCloudOption.FontFamily = fontFamily;
-            Bitmap bmp = new TagCloud(1000, 1000, tagDic, tagCloudOption).Get();
+            Bitmap bmp = new TagCloud(1920, 1080, tagDic, tagCloudOption).Get();
             using (MemoryStream memory = new MemoryStream())
             {
                 bmp.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
