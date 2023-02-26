@@ -13,7 +13,7 @@
         private double initRadius;
         private double decreasingFactor;
 
-        public Spiral(double angleStep, double radiusStep, double decreasingFactor = 0, double angleDecreaseFactor = 1.00, bool isRandomInitAngle = false)
+        public Spiral(double angleStep, double radiusStep, double angleDecreaseFactor = 1.00, double radiusDecreaseFactor = 0, bool isRandomInitAngle = false)
         {
             this.centerX = 0;
             this.centerY = 0;
@@ -31,7 +31,7 @@
             this.initAngle = this.currentAngle;
             this.currentRadius = 0.0;
             this.initRadius = this.currentRadius;
-            this.decreasingFactor = decreasingFactor;
+            this.decreasingFactor = radiusDecreaseFactor;
         }
 
         public (float, float) GetPoint(double t)

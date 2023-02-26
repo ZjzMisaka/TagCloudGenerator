@@ -50,29 +50,36 @@ namespace TagCloudGeneratorTest
             tagDic["memory"] = 12;
             tagDic["bitmapimage"] = 12;
             tagDic["tagCloudOption"] = 12;
+            tagDic["BitmapImage bitmapimage"] = 12;
+            tagDic["可视化QT应用软件打包发布程序"] = 12;
             tagDic["FontFamily"] = 12;
-            tagDic["TagCloud"] = 12;
+            tagDic["Following"] = 12;
+            tagDic["For you Beta"] = 12;
+            tagDic["static-binaries"] = 12;
             tagDic["and"] = 12;
-            tagDic["GTX2080"] = 10;
-            tagDic["GTX3080"] = 10;
-            tagDic["GTX4080"] = 10;
+            tagDic["RTX2080"] = 10;
+            tagDic["RTX3080"] = 10;
+            tagDic["RTX4080"] = 10;
+            tagDic["TagCloudOption tagCloudOption"] = 10;
             tagDic["Title"] = 10;
             tagDic["TotalSeconds"] = 10;
             tagDic["ToString"] = 10;
             tagDic["can't"] = 8;
             tagDic["okokoookokokok"] = 7;
-            
+            tagDic["nonononnononnonononononon"] = 2;
+
             DateTime dt = DateTime.Now;
             TagCloudOption tagCloudOption = new TagCloudOption();
-            tagCloudOption.RotateList = new List<int> { 0, 90 };
-            tagCloudOption.FontColorList = new List<Color> { Color.Red, Color.Orange, Color.OrangeRed };
+            tagCloudOption.IsRandomInitAngle = true;
+            tagCloudOption.RotateList = new List<int> { -10, 10 };
+            tagCloudOption.FontColorList = new List<Color> { Color.FromArgb(66, 141, 194), Color.FromArgb(42, 131, 194), Color.FromArgb(10, 100, 164) };
             PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile(@"H:\AnimeReport\Fonts\Lolita.ttf");
-            FontFamily fontFamily = new FontFamily("Lolita", collection);
-            tagCloudOption.FontFamily = fontFamily;
+            //collection.AddFontFile(@"H:\AnimeReport\Fonts\Lolita.ttf");
+            //FontFamily fontFamily = new FontFamily("Lolita", collection);
+            //tagCloudOption.FontFamily = fontFamily;
             tagCloudOption.Margin = 3;
-            tagCloudOption.FontSizeRange = (16, 50);
-            Bitmap bmp = new TagCloud(1000, 1000, tagDic, tagCloudOption).Get();
+            tagCloudOption.FontSizeRange = (16, 90);
+            Bitmap bmp = new TagCloud(1200, 1200, tagDic, tagCloudOption).Get();
             using (MemoryStream memory = new MemoryStream())
             {
                 bmp.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);

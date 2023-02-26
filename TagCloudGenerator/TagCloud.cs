@@ -38,12 +38,15 @@ namespace TagCloudGenerator
                 float range = maxFontSize - minFontSize;
 
                 float min = tagDic.Values.ElementAt(0);
+                string minKey = tagDic.Keys.ElementAt(0);
                 float max = tagDic.Values.ElementAt(0);
-                foreach (int count in tagDic.Values)
+                foreach (string key in tagDic.Keys)
                 {
+                    float count = tagDic[key];
                     if (count < min)
                     {
                         min = count;
+                        minKey = key;
                     }
                     if (count > max)
                     {
@@ -60,6 +63,7 @@ namespace TagCloudGenerator
                     }
                 }
 
+                min = tagDic[minKey];
                 if (min < minFontSize)
                 {
                     float needAdd = minFontSize - min;
@@ -74,7 +78,7 @@ namespace TagCloudGenerator
             Random rnd = new Random();
 
             Graphics graphicsBmp = Graphics.FromImage(bmp);
-            SolidBrush brush = new SolidBrush(Color.AliceBlue);
+            SolidBrush brush = new SolidBrush(tagCloudOption.BackgroundColor);
             (int, int, int) backgroundRgb = (brush.Color.R, brush.Color.G, brush.Color.B);
             graphicsBmp.FillRectangle(brush, 0, 0, width, height);
             graphicsBmp.Dispose();
@@ -83,7 +87,7 @@ namespace TagCloudGenerator
 
             foreach (string tag in tagDic.Keys)
             {
-                Spiral spiral = new Spiral(5, 5, isRandomInitAngle: true);
+                Spiral spiral = new Spiral(tagCloudOption.AngleStep, tagCloudOption.RadiusStep, tagCloudOption.AngleDecreaseFactor, tagCloudOption.RadiusDecreaseFactor, tagCloudOption.IsRandomInitAngle);
                 int step = 0;
 
                 float rotate = 0;
