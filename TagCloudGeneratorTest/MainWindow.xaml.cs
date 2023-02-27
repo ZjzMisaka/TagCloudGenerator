@@ -71,7 +71,7 @@ namespace TagCloudGeneratorTest
             DateTime dt = DateTime.Now;
             TagCloudOption tagCloudOption = new TagCloudOption();
             tagCloudOption.IsRandomInitAngle = true;
-            tagCloudOption.RotateList = new List<int> { -10, 10 };
+            tagCloudOption.RotateList = new List<int> { 0, 90 };
             tagCloudOption.FontColorList = new List<Color> { Color.FromArgb(66, 141, 194), Color.FromArgb(42, 131, 194), Color.FromArgb(10, 100, 164) };
             PrivateFontCollection collection = new PrivateFontCollection();
             //collection.AddFontFile(@"H:\AnimeReport\Fonts\Lolita.ttf");
@@ -79,7 +79,11 @@ namespace TagCloudGeneratorTest
             //tagCloudOption.FontFamily = fontFamily;
             tagCloudOption.Margin = 3;
             tagCloudOption.FontSizeRange = (16, 90);
-            Bitmap bmp = new TagCloud(1200, 1200, tagDic, tagCloudOption).Get();
+            tagCloudOption.BackgroundColor = Color.AliceBlue;
+            tagCloudOption.CanvasHorizontalGrowthStep = 5;
+            tagCloudOption.CanvasVerticalGrowthStep = 5;
+            tagCloudOption.OutputSize = new ImgSize(1920, 1080);
+            Bitmap bmp = new TagCloud(tagDic, tagCloudOption).Get();
             using (MemoryStream memory = new MemoryStream())
             {
                 bmp.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);

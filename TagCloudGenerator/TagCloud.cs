@@ -17,9 +17,25 @@ namespace TagCloudGenerator
     public class TagCloud
     {
         Bitmap bmp;
+        TagCloudOption tagCloudOption;
 
-        public TagCloud(int width, int height, Dictionary<string, float> tagDic, TagCloudOption tagCloudOption)
+        public TagCloud(Dictionary<string, float> tagDic, TagCloudOption tagCloudOption)
         {
+            this.tagCloudOption = tagCloudOption;
+
+            int width;
+            int height;
+            if (tagCloudOption.InitSize != null)
+            {
+                width = tagCloudOption.InitSize.Width;
+                height = tagCloudOption.InitSize.Height;
+            }
+            else
+            {
+                width = tagCloudOption.CanvasHorizontalGrowthStep;
+                height = tagCloudOption.CanvasVerticalGrowthStep;
+            }
+
             if (tagCloudOption.RotateList == null)
             {
                 throw new Exception("RotateList is null");
@@ -78,9 +94,9 @@ namespace TagCloudGenerator
             Random rnd = new Random();
 
             Graphics graphicsBmp = Graphics.FromImage(bmp);
-            SolidBrush brush = new SolidBrush(tagCloudOption.BackgroundColor);
-            (int, int, int) backgroundRgb = (brush.Color.R, brush.Color.G, brush.Color.B);
-            graphicsBmp.FillRectangle(brush, 0, 0, width, height);
+            SolidBrush backgroundColorBrush = new SolidBrush(tagCloudOption.BackgroundColor);
+            (int, int, int) backgroundRgb = (backgroundColorBrush.Color.R, backgroundColorBrush.Color.G, backgroundColorBrush.Color.B);
+            graphicsBmp.FillRectangle(backgroundColorBrush, 0, 0, width, height);
             graphicsBmp.Dispose();
 
             List<(int, int)> usedPointList = new List<(int, int)>();
@@ -105,13 +121,11 @@ namespace TagCloudGenerator
 
                 SolidBrush fontBrush = new SolidBrush(tagCloudOption.FontColorList[rnd.Next(0, tagCloudOption.FontColorList.Count)]);
 
-                int outOfBoundsFailedCount = 0;
-
                 while (true)
                 {
                     Bitmap newBmp = new Bitmap(width, height);
                     Graphics graphics = Graphics.FromImage(newBmp);
-                    graphics.FillRectangle(brush, 0, 0, width, height);
+                    graphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
                     graphics.TranslateTransform(newBmp.Width / 2, newBmp.Height / 2);
                     graphics.RotateTransform(rotate);
                     SizeF textSize = graphics.MeasureString(tag, font);
@@ -129,17 +143,23 @@ namespace TagCloudGenerator
 
                     graphics.Dispose();
 
-                    if (HasOutOfBounds(point, textSize, width, height))
+                    byte[] origBmpData = GetByteArray(bmp);
+                    byte[] newBmpData = GetByteArray(newBmp);
+                    
+                    if (HasOutOfBounds(newBmpData, width, height, backgroundRgb))
                     {
-                        ++outOfBoundsFailedCount;
-                        if (outOfBoundsFailedCount == 10000)
-                        {
-                            throw new Exception("Image size is too small");
-                        }
+                        width = width + tagCloudOption.CanvasHorizontalGrowthStep;
+                        height = height + tagCloudOption.CanvasVerticalGrowthStep;
+                        Bitmap biggerBitmap = new Bitmap(width, height);
+                        Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
+                        biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
+                        biggerGraphics.DrawImage(bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
+                        bmp = biggerBitmap;
+                        --step;
                         continue;
                     }
 
-                    if (HasOverlap(bmp, newBmp, width, height, backgroundRgb))
+                    if (HasOverlap(origBmpData, newBmpData, width, height, backgroundRgb))
                     {
                         continue;
                     }
@@ -156,51 +176,66 @@ namespace TagCloudGenerator
 
         public Bitmap Get()
         {
+            if (tagCloudOption.OutputSize != null)
+            {
+                Bitmap biggerBitmap = new Bitmap(tagCloudOption.OutputSize.Width, tagCloudOption.OutputSize.Height);
+                Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
+                biggerGraphics.DrawImage(bmp, 0, 0, tagCloudOption.OutputSize.Width, tagCloudOption.OutputSize.Height);
+                bmp = biggerBitmap;
+            }
             return bmp;
         }
-
-        private bool HasOutOfBounds((float, float) point, SizeF textSize, int width, int height)
+        unsafe private bool HasOutOfBounds(byte[] data, int width, int height, (int, int, int) backgroundRgb)
         {
-            if (point.Item1 >= 0)
-            {
-                if (point.Item1 + textSize.Width / 2 > width / 2)
-                {
-                    return true;
-                }
-            }
-            else if (point.Item1 < 0)
-            {
-                if (point.Item1 - textSize.Width / 2 < -width / 2)
-                {
-                    return true;
-                }
-            }
-            if (point.Item2 >= 0)
-            {
-                if (point.Item2 + textSize.Height / 2 > height / 2)
-                {
-                    return true;
-                }
-            }
-            else if (point.Item2 < 0)
-            {
-                if (point.Item2 - textSize.Height / 2 < -height / 2)
-                {
-                    return true;
-                }
-            }
+            int fontPixelCount = 0;
 
-            return false;
+            bool hasOutOfBounds = false;
+            fixed (byte* ptr = data)
+            {
+                // 按行遍历像素
+                for (int y = 0; y < height; y++)
+                {
+                    // 获取指向当前行的指针
+                    byte* row = ptr + y * width * 3;
+
+                    // 按像素遍历
+                    for (int x = 0; x < width; x++)
+                    {
+                        // 获取当前像素的RGB值
+                        byte r = row[x * 3 + 2];
+                        byte g = row[x * 3 + 1];
+                        byte b = row[x * 3];
+
+                        // 判断当前像素是否为底色
+                        if (r != backgroundRgb.Item1 || g != backgroundRgb.Item2 || b != backgroundRgb.Item3)
+                        {
+                            ++fontPixelCount;
+                            if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
+                            {
+                                hasOutOfBounds = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (hasOutOfBounds)
+                    {
+                        break;
+                    }
+                }
+            }
+            if (fontPixelCount == 0)
+            {
+                hasOutOfBounds = true;
+            }
+            return hasOutOfBounds;
         }
 
-        unsafe private bool HasOverlap(Bitmap origBmp, Bitmap newBmp, int width, int height, (int, int, int) backgroundRgb)
+        unsafe private bool HasOverlap(byte[] origBmpData, byte[] newBmpData, int width, int height, (int, int, int) backgroundRgb)
         {
-            byte[] data1 = GetByteArray(origBmp);
-            byte[] data2 = GetByteArray(newBmp);
-
             // 判断两个字节数组中红色像素部分是否重叠
             bool hasOverlap = false;
-            fixed (byte* ptr1 = data1, ptr2 = data2)
+            fixed (byte* ptr1 = origBmpData, ptr2 = newBmpData)
             {
                 // 按行遍历像素
                 for (int y = 0; y < height; y++)

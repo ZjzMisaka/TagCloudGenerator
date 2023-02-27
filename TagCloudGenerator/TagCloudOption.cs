@@ -26,6 +26,10 @@ namespace TagCloudGenerator
         public double AngleDecreaseFactor { get; set; }
         public double RadiusDecreaseFactor { get; set; }
         public bool IsRandomInitAngle { get; set; }
+        public int CanvasHorizontalGrowthStep { get; set; }
+        public int CanvasVerticalGrowthStep { get; set; }
+        public ImgSize? OutputSize { get; set; }
+        public ImgSize? InitSize { get; set; }
 
         public TagCloudOption()
         {
@@ -40,6 +44,20 @@ namespace TagCloudGenerator
             AngleDecreaseFactor = 1;
             RadiusDecreaseFactor = 0;
             IsRandomInitAngle = false;
+            CanvasHorizontalGrowthStep = 10;
+            CanvasVerticalGrowthStep = 10;
+        }
+    }
+
+    public class ImgSize
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+
+        public ImgSize(int width, int height)
+        {
+            this.Width = width;
+            this.Height = height;
         }
     }
 }
