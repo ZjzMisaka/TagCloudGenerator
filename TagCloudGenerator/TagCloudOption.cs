@@ -20,7 +20,7 @@ namespace TagCloudGenerator
         public int VerticalOuterMargin { get; set; }
         public List<int>? RotateList { get; set; }
         public List<Color>? FontColorList { get; set; }
-        public Color BackgroundColor { get; set; }
+        public Color? BackgroundColor { get; set; }
         public FontFamily FontFamily { get; set; }
         public (float, float) FontSizeRange { get; set; }
         public double AngleStep { get; set; }
@@ -38,7 +38,6 @@ namespace TagCloudGenerator
             RotateType = RotateType.FromList;
             RotateList = new List<int>() { 0 };
             FontColorList = new List<Color>() { Color.Black };
-            BackgroundColor = Color.White;
             FontFamily = new FontFamily("Comic Sans MS");
             TagSpacing = 0;
             HorizontalOuterMargin = 0;

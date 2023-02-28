@@ -95,9 +95,7 @@ namespace TagCloudGenerator
             Random rnd = new Random();
 
             Graphics graphicsBmp = Graphics.FromImage(bmp);
-            SolidBrush backgroundColorBrush = new SolidBrush(tagCloudOption.BackgroundColor);
-            (int, int, int) backgroundRgb = (backgroundColorBrush.Color.R, backgroundColorBrush.Color.G, backgroundColorBrush.Color.B);
-            graphicsBmp.FillRectangle(backgroundColorBrush, 0, 0, width, height);
+
             graphicsBmp.Dispose();
 
             Dictionary<float, Font> fontDic = new Dictionary<float, Font>();
@@ -134,7 +132,7 @@ namespace TagCloudGenerator
                 {
                     Bitmap newBmp = new Bitmap(width, height);
                     Graphics graphics = Graphics.FromImage(newBmp);
-                    graphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
+                    // graphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
                     graphics.TranslateTransform(newBmp.Width / 2, newBmp.Height / 2);
                     graphics.RotateTransform(rotate);
                     SizeF textSize = graphics.MeasureString(tag, font);
@@ -163,20 +161,20 @@ namespace TagCloudGenerator
                         height = height + tagCloudOption.VerticalCanvasGrowthStep;
                         Bitmap biggerBitmap = new Bitmap(width, height);
                         Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
-                        biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
+                        //biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
                         biggerGraphics.DrawImage(bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
                         bmp = biggerBitmap;
                         --step;
                         continue;
                     }
 
-                    if (HasOverlap(bmp, newBmp, width, height, backgroundRgb, points))
+                    if (HasOverlap(bmp, newBmp, width, height, points))
                     {
                         continue;
                     }
 
                     graphicsBmp = Graphics.FromImage(bmp);
-                    graphicsBmp.TranslateTransform(newBmp.Width / 2, newBmp.Height / 2);
+                    graphicsBmp.TranslateTransform(bmp.Width / 2, bmp.Height / 2);
                     graphicsBmp.RotateTransform(rotate);
                     graphicsBmp.DrawString(tag, font, fontBrush, -textSize.Width / 2 + point.Item1, -textSize.Height / 2 + point.Item2);
                     graphicsBmp.Dispose();
@@ -187,13 +185,22 @@ namespace TagCloudGenerator
 
         public Bitmap Get()
         {
+            int width = bmp.Width;
+            int height = bmp.Height;
             if (tagCloudOption.OutputSize != null)
             {
-                Bitmap biggerBitmap = new Bitmap(tagCloudOption.OutputSize.Width, tagCloudOption.OutputSize.Height);
-                Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
-                biggerGraphics.DrawImage(bmp, 0, 0, tagCloudOption.OutputSize.Width, tagCloudOption.OutputSize.Height);
-                bmp = biggerBitmap;
+                width = tagCloudOption.OutputSize.Width;
+                height = tagCloudOption.OutputSize.Height;
             }
+            Bitmap biggerBitmap = new Bitmap(width, height);
+            Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
+            if (tagCloudOption.BackgroundColor != null)
+            {
+                SolidBrush backgroundColorBrush = new SolidBrush((Color)tagCloudOption.BackgroundColor);
+                biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
+            }
+            biggerGraphics.DrawImage(bmp, 0, 0, width, height);
+            bmp = biggerBitmap;
             return bmp;
         }
 
@@ -233,7 +240,7 @@ namespace TagCloudGenerator
             return false;
         }
 
-        unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, (int, int, int) backgroundRgb, PointF[] rotatedPoints)
+        unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, PointF[] rotatedPoints)
         {
             int minX = int.MaxValue;
             int minY = int.MaxValue;
@@ -264,8 +271,8 @@ namespace TagCloudGenerator
             maxY += height / 2;
 
             Rectangle rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-            BitmapData newBmpData = newBmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData newBmpData = newBmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             bool hasOverlap = false;
 
             try
@@ -281,16 +288,10 @@ namespace TagCloudGenerator
 
                     for (int x = 0; x < rect.Width; ++x)
                     {
-                        byte b1 = bmpRow[3 * x];
-                        byte g1 = bmpRow[3 * x + 1];
-                        byte r1 = bmpRow[3 * x + 2];
+                        byte a1 = bmpRow[4 * x + 3];
+                        byte a2 = newBmpRow[4 * x + 3];
 
-                        byte b2 = newBmpRow[3 * x];
-                        byte g2 = newBmpRow[3 * x + 1];
-                        byte r2 = newBmpRow[3 * x + 2];
-
-                        if ((r1 != backgroundRgb.Item1 || g1 != backgroundRgb.Item2 || b1 != backgroundRgb.Item3)
-                            && (r2 != backgroundRgb.Item1 || g2 != backgroundRgb.Item2 || b2 != backgroundRgb.Item3))
+                        if (a1 != 0 && a2 != 0)
                         {
                             hasOverlap = true;
                             break;
