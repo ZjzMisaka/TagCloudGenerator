@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Linq;
@@ -141,6 +142,11 @@ namespace TagCloudGenerator
                     ++step;
                     graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2);
 
+                    float beforeRotatedX = point.Item1 - textSize.Width / 2;
+                    float beforeRotatedY = point.Item2 - textSize.Height / 2;
+                    PointF[] points = { new PointF(beforeRotatedX, beforeRotatedY), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY), new PointF(beforeRotatedX, beforeRotatedY + textSize.Height), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY + textSize.Height) };
+                    graphics.TransformPoints(CoordinateSpace.Page, CoordinateSpace.Device, points);
+
                     for (int i = 1; i <= tagCloudOption.Margin; ++i)
                     {
                         graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 - i, point.Item2 - textSize.Height / 2);
@@ -150,11 +156,8 @@ namespace TagCloudGenerator
                     }
 
                     graphics.Dispose();
-
-                    byte[] origBmpData = GetByteArray(bmp);
-                    byte[] newBmpData = GetByteArray(newBmp);
                     
-                    if (HasOutOfBounds(newBmpData, width, height, backgroundRgb))
+                    if (HasOutOfBounds(points, textSize, rotate, width, height))
                     {
                         width = width + tagCloudOption.CanvasHorizontalGrowthStep;
                         height = height + tagCloudOption.CanvasVerticalGrowthStep;
@@ -166,8 +169,8 @@ namespace TagCloudGenerator
                         --step;
                         continue;
                     }
-
-                    if (HasOverlap(origBmpData, newBmpData, width, height, backgroundRgb))
+                    
+                    if (HasOverlap(bmp, newBmp, width, height, backgroundRgb))
                     {
                         continue;
                     }
@@ -193,54 +196,48 @@ namespace TagCloudGenerator
             }
             return bmp;
         }
-        unsafe private bool HasOutOfBounds(byte[] data, int width, int height, (int, int, int) backgroundRgb)
+
+        private bool HasOutOfBounds(PointF[] rotatedPoints, SizeF textSize, float rotate, int width, int height)
         {
-            int fontPixelCount = 0;
-
-            bool hasOutOfBounds = false;
-            fixed (byte* ptr = data)
+            float minX = float.MaxValue;
+            float minY = float.MaxValue;
+            float maxX = float.MinValue;
+            float maxY = float.MinValue;
+            foreach (PointF point in rotatedPoints)
             {
-                // 按行遍历像素
-                for (int y = 0; y < height; y++)
+                if (point.X > maxX)
                 {
-                    // 获取指向当前行的指针
-                    byte* row = ptr + y * width * 3;
-
-                    // 按像素遍历
-                    for (int x = 0; x < width; x++)
-                    {
-                        // 获取当前像素的RGB值
-                        byte r = row[x * 3 + 2];
-                        byte g = row[x * 3 + 1];
-                        byte b = row[x * 3];
-
-                        // 判断当前像素是否为底色
-                        if (r != backgroundRgb.Item1 || g != backgroundRgb.Item2 || b != backgroundRgb.Item3)
-                        {
-                            ++fontPixelCount;
-                            if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
-                            {
-                                hasOutOfBounds = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (hasOutOfBounds)
-                    {
-                        break;
-                    }
+                    maxX = point.X;
+                }
+                if (point.Y > maxY)
+                {
+                    maxY = point.Y;
+                }
+                if (point.X < minX)
+                {
+                    minX = point.X;
+                }
+                if (point.Y < minY)
+                {
+                    minY = point.Y;
                 }
             }
-            if (fontPixelCount == 0)
+
+            if (maxX >= width / 2
+                || maxY >= height / 2
+                || minX <= -width / 2
+                || minY <= -height / 2)
             {
-                hasOutOfBounds = true;
+                return true;
             }
-            return hasOutOfBounds;
+            return false;
         }
 
-        unsafe private bool HasOverlap(byte[] origBmpData, byte[] newBmpData, int width, int height, (int, int, int) backgroundRgb)
+        unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, (int, int, int) backgroundRgb)
         {
+            byte[] origBmpData = GetByteArray(bmp);
+            byte[] newBmpData = GetByteArray(newBmp);
+
             // 判断两个字节数组中红色像素部分是否重叠
             bool hasOverlap = false;
             fixed (byte* ptr1 = origBmpData, ptr2 = newBmpData)
