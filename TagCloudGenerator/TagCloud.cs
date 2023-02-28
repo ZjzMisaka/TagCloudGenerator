@@ -145,7 +145,7 @@ namespace TagCloudGenerator
                     float beforeRotatedX = point.Item1 - textSize.Width / 2;
                     float beforeRotatedY = point.Item2 - textSize.Height / 2;
                     PointF[] points = { new PointF(beforeRotatedX, beforeRotatedY), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY), new PointF(beforeRotatedX, beforeRotatedY + textSize.Height), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY + textSize.Height) };
-                    graphics.TransformPoints(CoordinateSpace.Page, CoordinateSpace.Device, points);
+                    points = GetRotatedPoints(points, rotate);
 
                     for (int i = 1; i <= tagCloudOption.TagSpacing; ++i)
                     {
@@ -156,7 +156,7 @@ namespace TagCloudGenerator
                     }
 
                     graphics.Dispose();
-                    
+
                     if (HasOutOfBounds(points, textSize, rotate, width, height))
                     {
                         width = width + tagCloudOption.HorizontalCanvasGrowthStep;
@@ -169,8 +169,8 @@ namespace TagCloudGenerator
                         --step;
                         continue;
                     }
-                    
-                    if (HasOverlap(bmp, newBmp, width, height, backgroundRgb))
+
+                    if (HasOverlap(bmp, newBmp, width, height, backgroundRgb, points))
                     {
                         continue;
                     }
@@ -233,34 +233,62 @@ namespace TagCloudGenerator
             return false;
         }
 
-        unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, (int, int, int) backgroundRgb)
+        unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, (int, int, int) backgroundRgb, PointF[] rotatedPoints)
         {
-            byte[] origBmpData = GetByteArray(bmp);
-            byte[] newBmpData = GetByteArray(newBmp);
-
-            // 判断两个字节数组中红色像素部分是否重叠
-            bool hasOverlap = false;
-            fixed (byte* ptr1 = origBmpData, ptr2 = newBmpData)
+            int minX = int.MaxValue;
+            int minY = int.MaxValue;
+            int maxX = int.MinValue;
+            int maxY = int.MinValue;
+            foreach (PointF point in rotatedPoints)
             {
-                // 按行遍历像素
-                for (int y = 0; y < height; y++)
+                if (point.X > maxX)
                 {
-                    // 获取指向当前行的指针
-                    byte* row1 = ptr1 + y * width * 3;
-                    byte* row2 = ptr2 + y * width * 3;
+                    maxX = (int)point.X;
+                }
+                if (point.Y > maxY)
+                {
+                    maxY = (int)point.Y;
+                }
+                if (point.X < minX)
+                {
+                    minX = (int)point.X;
+                }
+                if (point.Y < minY)
+                {
+                    minY = (int)point.Y;
+                }
+            }
+            minX += width / 2;
+            maxX += width / 2;
+            minY += height / 2;
+            maxY += height / 2;
 
-                    // 按像素遍历
-                    for (int x = 0; x < width; x++)
+            Rectangle rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            BitmapData newBmpData = newBmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            bool hasOverlap = false;
+
+            try
+            {
+                byte* bmpPtr = (byte*)bmpData.Scan0.ToPointer();
+                byte* newBmpPtr = (byte*)newBmpData.Scan0.ToPointer();
+                int stride = bmpData.Stride;
+
+                for (int y = 0; y < rect.Height; ++y)
+                {
+                    byte* bmpRow = bmpPtr + y * stride;
+                    byte* newBmpRow = newBmpPtr + y * stride;
+
+                    for (int x = 0; x < rect.Width; ++x)
                     {
-                        // 获取当前像素的RGB值
-                        byte r1 = row1[x * 3 + 2];
-                        byte g1 = row1[x * 3 + 1];
-                        byte b1 = row1[x * 3];
-                        byte r2 = row2[x * 3 + 2];
-                        byte g2 = row2[x * 3 + 1];
-                        byte b2 = row2[x * 3];
+                        byte b1 = bmpRow[3 * x];
+                        byte g1 = bmpRow[3 * x + 1];
+                        byte r1 = bmpRow[3 * x + 2];
 
-                        // 判断当前像素是否为底色
+                        byte b2 = newBmpRow[3 * x];
+                        byte g2 = newBmpRow[3 * x + 1];
+                        byte r2 = newBmpRow[3 * x + 2];
+
                         if ((r1 != backgroundRgb.Item1 || g1 != backgroundRgb.Item2 || b1 != backgroundRgb.Item3)
                             && (r2 != backgroundRgb.Item1 || g2 != backgroundRgb.Item2 || b2 != backgroundRgb.Item3))
                         {
@@ -275,21 +303,29 @@ namespace TagCloudGenerator
                     }
                 }
             }
+            finally
+            {
+                bmp.UnlockBits(bmpData);
+                newBmp.UnlockBits(newBmpData);
+            }
 
             return hasOverlap;
         }
 
-        // 将Bitmap转换为字节数组的函数
-        private byte[] GetByteArray(Bitmap bmp)
+        private PointF[] GetRotatedPoints(PointF[] points, float angleInDegrees)
         {
-            Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
-            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-            IntPtr ptr = bmpData.Scan0;
-            int size = bmpData.Stride * bmp.Height;
-            byte[] data = new byte[size];
-            Marshal.Copy(ptr, data, 0, size);
-            bmp.UnlockBits(bmpData);
-            return data;
+            PointF[] rotatedPoints = new PointF[points.Length];
+
+            double angleInRadians = angleInDegrees * Math.PI / 180;
+            for (int i = 0; i < points.Length; ++i)
+            {
+                PointF point = points[i];
+                float rotatedX = (float)(point.X * Math.Cos(angleInRadians) - point.Y * Math.Sin(angleInRadians));
+                float rotatedY = (float)(point.X * Math.Sin(angleInRadians) + point.Y * Math.Cos(angleInRadians));
+                rotatedPoints[i] = new PointF(rotatedX, rotatedY);
+            }
+
+            return rotatedPoints;
         }
     }
 }
