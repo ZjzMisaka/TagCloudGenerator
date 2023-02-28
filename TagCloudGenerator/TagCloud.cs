@@ -99,7 +99,7 @@ namespace TagCloudGenerator
             graphicsBmp.FillRectangle(backgroundColorBrush, 0, 0, width, height);
             graphicsBmp.Dispose();
 
-            List<(int, int)> usedPointList = new List<(int, int)>();
+            Dictionary<float, Font> fontDic = new Dictionary<float, Font>();
 
             foreach (string tag in tagDic.Keys)
             {
@@ -117,7 +117,15 @@ namespace TagCloudGenerator
                 }
 
 
-                Font font = new Font(tagCloudOption.FontFamily != null ? tagCloudOption.FontFamily : new FontFamily("Comic Sans MS"), tagDic[tag]);
+                Font font;
+                if (fontDic.ContainsKey(tagDic[tag]))
+                {
+                    font = fontDic[tagDic[tag]];
+                }
+                else
+                {
+                    font = fontDic[tagDic[tag]] = new Font(tagCloudOption.FontFamily != null ? tagCloudOption.FontFamily : new FontFamily("Comic Sans MS"), tagDic[tag]);
+                }
 
                 SolidBrush fontBrush = new SolidBrush(tagCloudOption.FontColorList[rnd.Next(0, tagCloudOption.FontColorList.Count)]);
 
