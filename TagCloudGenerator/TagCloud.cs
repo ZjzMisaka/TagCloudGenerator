@@ -33,8 +33,8 @@ namespace TagCloudGenerator
             }
             else
             {
-                width = tagCloudOption.CanvasHorizontalGrowthStep;
-                height = tagCloudOption.CanvasVerticalGrowthStep;
+                width = tagCloudOption.HorizontalCanvasGrowthStep;
+                height = tagCloudOption.VerticalCanvasGrowthStep;
             }
 
             if (tagCloudOption.RotateList == null)
@@ -147,7 +147,7 @@ namespace TagCloudGenerator
                     PointF[] points = { new PointF(beforeRotatedX, beforeRotatedY), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY), new PointF(beforeRotatedX, beforeRotatedY + textSize.Height), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY + textSize.Height) };
                     graphics.TransformPoints(CoordinateSpace.Page, CoordinateSpace.Device, points);
 
-                    for (int i = 1; i <= tagCloudOption.Margin; ++i)
+                    for (int i = 1; i <= tagCloudOption.TagSpacing; ++i)
                     {
                         graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 - i, point.Item2 - textSize.Height / 2);
                         graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 + i, point.Item2 - textSize.Height / 2);
@@ -159,8 +159,8 @@ namespace TagCloudGenerator
                     
                     if (HasOutOfBounds(points, textSize, rotate, width, height))
                     {
-                        width = width + tagCloudOption.CanvasHorizontalGrowthStep;
-                        height = height + tagCloudOption.CanvasVerticalGrowthStep;
+                        width = width + tagCloudOption.HorizontalCanvasGrowthStep;
+                        height = height + tagCloudOption.VerticalCanvasGrowthStep;
                         Bitmap biggerBitmap = new Bitmap(width, height);
                         Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
                         biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
@@ -223,10 +223,10 @@ namespace TagCloudGenerator
                 }
             }
 
-            if (maxX >= width / 2
-                || maxY >= height / 2
-                || minX <= -width / 2
-                || minY <= -height / 2)
+            if (maxX >= width / 2 - this.tagCloudOption.HorizontalOuterMargin
+                || maxY >= height / 2 - this.tagCloudOption.VerticalOuterMargin
+                || minX <= -width / 2 + this.tagCloudOption.HorizontalOuterMargin
+                || minY <= -height / 2 + this.tagCloudOption.VerticalOuterMargin)
             {
                 return true;
             }

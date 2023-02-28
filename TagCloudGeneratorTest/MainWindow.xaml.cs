@@ -77,12 +77,14 @@ namespace TagCloudGeneratorTest
             //collection.AddFontFile(@"H:\AnimeReport\Fonts\Lolita.ttf");
             //FontFamily fontFamily = new FontFamily("Lolita", collection);
             //tagCloudOption.FontFamily = fontFamily;
-            tagCloudOption.Margin = 3;
+            tagCloudOption.TagSpacing = 3;
             tagCloudOption.FontSizeRange = (16, 90);
             tagCloudOption.BackgroundColor = Color.AliceBlue;
-            tagCloudOption.CanvasHorizontalGrowthStep = 5;
-            tagCloudOption.CanvasVerticalGrowthStep = 5;
+            tagCloudOption.HorizontalCanvasGrowthStep = 5;
+            tagCloudOption.VerticalCanvasGrowthStep = 5;
             tagCloudOption.OutputSize = new ImgSize(1920, 1080);
+            tagCloudOption.HorizontalOuterMargin = 20;
+            tagCloudOption.VerticalOuterMargin = 10;
             Bitmap bmp = new TagCloud(tagDic, tagCloudOption).Get();
             using (MemoryStream memory = new MemoryStream())
             {

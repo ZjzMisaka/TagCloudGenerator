@@ -15,7 +15,9 @@ namespace TagCloudGenerator
         public RotateType RotateType { get; set; }
         public float RandomRotateFrom { get; set; }
         public float RandomRotateTo { get; set; }
-        public int Margin { get; set; }
+        public int TagSpacing { get; set; }
+        public int HorizontalOuterMargin { get; set; }
+        public int VerticalOuterMargin { get; set; }
         public List<int>? RotateList { get; set; }
         public List<Color>? FontColorList { get; set; }
         public Color BackgroundColor { get; set; }
@@ -26,8 +28,8 @@ namespace TagCloudGenerator
         public double AngleDecreaseFactor { get; set; }
         public double RadiusDecreaseFactor { get; set; }
         public bool IsRandomInitAngle { get; set; }
-        public int CanvasHorizontalGrowthStep { get; set; }
-        public int CanvasVerticalGrowthStep { get; set; }
+        public int HorizontalCanvasGrowthStep { get; set; }
+        public int VerticalCanvasGrowthStep { get; set; }
         public ImgSize? OutputSize { get; set; }
         public ImgSize? InitSize { get; set; }
 
@@ -38,14 +40,16 @@ namespace TagCloudGenerator
             FontColorList = new List<Color>() { Color.Black };
             BackgroundColor = Color.White;
             FontFamily = new FontFamily("Comic Sans MS");
-            Margin = 0;
+            TagSpacing = 0;
+            HorizontalOuterMargin = 0;
+            VerticalOuterMargin = 0;
             AngleStep = 5;
             RadiusStep = 5;
             AngleDecreaseFactor = 1;
             RadiusDecreaseFactor = 0;
             IsRandomInitAngle = false;
-            CanvasHorizontalGrowthStep = 10;
-            CanvasVerticalGrowthStep = 10;
+            HorizontalCanvasGrowthStep = 10;
+            VerticalCanvasGrowthStep = 10;
         }
     }
 
