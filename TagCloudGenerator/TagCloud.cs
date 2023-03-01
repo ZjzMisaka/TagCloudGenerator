@@ -20,7 +20,7 @@ namespace TagCloudGenerator
         Bitmap bmp;
         TagCloudOption tagCloudOption;
 
-        public TagCloud(Dictionary<string, float> tagDic, TagCloudOption tagCloudOption)
+        public TagCloud(Dictionary<string, float> tagDic, TagCloudOption tagCloudOption, Dictionary<string, TagOption>? tagOptionDic = null)
         {
             this.tagCloudOption = tagCloudOption;
 
@@ -106,15 +106,21 @@ namespace TagCloudGenerator
                 int step = 0;
 
                 float rotate = 0;
-                if (tagCloudOption.RotateType == RotateType.FromList)
+                if (tagOptionDic != null && tagOptionDic.ContainsKey(tag) && tagOptionDic[tag].Rotate.HasValue)
                 {
-                    rotate = tagCloudOption.RotateList[rnd.Next(0, tagCloudOption.RotateList.Count)];
+                    rotate = tagOptionDic[tag].Rotate.GetValueOrDefault();
                 }
                 else
                 {
-                    rotate = rnd.Next((int)tagCloudOption.RandomRotateFrom, (int)tagCloudOption.RandomRotateTo);
+                    if (tagCloudOption.RotateType == RotateType.FromList)
+                    {
+                        rotate = tagCloudOption.RotateList[rnd.Next(0, tagCloudOption.RotateList.Count)];
+                    }
+                    else
+                    {
+                        rotate = rnd.Next((int)tagCloudOption.RandomRotateFrom, (int)tagCloudOption.RandomRotateTo);
+                    }
                 }
-
 
                 Font font;
                 if (fontDic.ContainsKey(tagDic[tag]))
@@ -123,10 +129,25 @@ namespace TagCloudGenerator
                 }
                 else
                 {
-                    font = fontDic[tagDic[tag]] = new Font(tagCloudOption.FontFamily != null ? tagCloudOption.FontFamily : new FontFamily("Comic Sans MS"), tagDic[tag]);
+                    if (tagOptionDic != null && tagOptionDic.ContainsKey(tag) && tagOptionDic[tag].FontFamily != null)
+                    {
+                        font = new Font(tagOptionDic[tag].FontFamily, tagDic[tag]);
+                    }
+                    else
+                    {
+                        font = fontDic[tagDic[tag]] = new Font(tagCloudOption.FontFamily != null ? tagCloudOption.FontFamily : new FontFamily("Comic Sans MS"), tagDic[tag]);
+                    }
                 }
 
-                SolidBrush fontBrush = new SolidBrush(tagCloudOption.FontColorList[rnd.Next(0, tagCloudOption.FontColorList.Count)]);
+                SolidBrush fontBrush;
+                if (tagOptionDic != null && tagOptionDic.ContainsKey(tag) && tagOptionDic[tag].FontColor.HasValue)
+                {
+                    fontBrush = new SolidBrush(tagOptionDic[tag].FontColor.GetValueOrDefault());
+                }
+                else
+                {
+                    fontBrush = new SolidBrush(tagCloudOption.FontColorList[rnd.Next(0, tagCloudOption.FontColorList.Count)]);
+                }
 
                 while (true)
                 {

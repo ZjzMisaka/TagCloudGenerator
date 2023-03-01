@@ -85,7 +85,12 @@ namespace TagCloudGeneratorTest
             tagCloudOption.OutputSize = new ImgSize(1920, 1080);
             tagCloudOption.HorizontalOuterMargin = 20;
             tagCloudOption.VerticalOuterMargin = 10;
-            Bitmap bmp = new TagCloud(tagDic, tagCloudOption).Get();
+
+            Dictionary<string, TagOption> tagOptionDic = new Dictionary<string, TagOption>();
+            tagOptionDic["yuri"] = new TagOption() { Rotate = 0 };
+
+            Bitmap bmp = new TagCloud(tagDic, tagCloudOption, tagOptionDic).Get();
+            
             using (MemoryStream memory = new MemoryStream())
             {
                 bmp.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
