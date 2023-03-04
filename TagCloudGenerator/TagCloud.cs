@@ -102,6 +102,11 @@ namespace TagCloudGenerator
 
             foreach (string tag in tagDic.Keys)
             {
+                if (tag.Replace(" ", "").Replace("　", "") == "")
+                {
+                    continue;
+                }
+
                 Spiral spiral = new Spiral(tagCloudOption.AngleStep, tagCloudOption.RadiusStep, tagCloudOption.AngleDecreaseFactor, tagCloudOption.RadiusDecreaseFactor, tagCloudOption.IsRandomInitAngle);
                 int step = 0;
 
@@ -184,13 +189,17 @@ namespace TagCloudGenerator
                         Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
                         //biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
                         biggerGraphics.DrawImage(bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
+                        graphicsBmp.Dispose();
+                        bmp.Dispose();
                         bmp = biggerBitmap;
+                        newBmp.Dispose();
                         --step;
                         continue;
                     }
 
                     if (HasOverlap(bmp, newBmp, width, height, points))
                     {
+                        newBmp.Dispose();
                         continue;
                     }
 
@@ -199,6 +208,7 @@ namespace TagCloudGenerator
                     graphicsBmp.RotateTransform(rotate);
                     graphicsBmp.DrawString(tag, font, fontBrush, -textSize.Width / 2 + point.Item1, -textSize.Height / 2 + point.Item2);
                     graphicsBmp.Dispose();
+                    newBmp.Dispose();
                     break;
                 }
             }
