@@ -99,12 +99,22 @@ namespace TagCloudGenerator
             if (tagCloudOption.MaskPath != null)
             {
                 maskBmp = new Bitmap(tagCloudOption.MaskPath);
-                float newHeight = height;
-                float newWidth = ((float)maskBmp.Width / maskBmp.Height) * height;
-                if (newWidth > width)
+                float newHeight;
+                float newWidth;
+                if (tagCloudOption.StretchMask)
                 {
+                    newHeight = height;
                     newWidth = width;
-                    newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
+                }
+                else
+                {
+                    newHeight = height;
+                    newWidth = ((float)maskBmp.Width / maskBmp.Height) * height;
+                    if (newWidth > width)
+                    {
+                        newWidth = width;
+                        newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
+                    }
                 }
                 resizedMaskBmp = new Bitmap(width, height);
                 Graphics resizedMaskGraphics = Graphics.FromImage(resizedMaskBmp);
@@ -219,16 +229,28 @@ namespace TagCloudGenerator
                         if (resizedMaskBmp != null && maskBmp != null)
                         {
                             resizedMaskBmp.Dispose();
-                            float newHeight = height;
-                            float newWidth = ((float)maskBmp.Width / maskBmp.Height) * height;
-                            if (newWidth > width)
+                            float newHeight;
+                            float newWidth;
+                            if (tagCloudOption.StretchMask)
                             {
+                                newHeight = height;
                                 newWidth = width;
-                                newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
                             }
+                            else
+                            {
+                                newHeight = height;
+                                newWidth = ((float)maskBmp.Width / maskBmp.Height) * height;
+                                if (newWidth > width)
+                                {
+                                    newWidth = width;
+                                    newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
+                                }
+                            }
+                            resizedMaskBmp.Dispose();
                             resizedMaskBmp = new Bitmap(width, height);
                             Graphics resizedMaskGraphics = Graphics.FromImage(resizedMaskBmp);
                             resizedMaskGraphics.DrawImage(maskBmp, (width - newWidth) / 2, (height - newHeight) / 2, newWidth, newHeight);
+                            resizedMaskGraphics.Dispose();
                         }
                         if (resizedMaskBmp != null && maskBmp != null)
                         {

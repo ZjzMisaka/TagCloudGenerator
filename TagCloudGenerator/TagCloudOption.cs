@@ -33,7 +33,8 @@ namespace TagCloudGenerator
         public ImgSize? OutputSize { get; set; }
         public ImgSize? InitSize { get; set; }
         public string? MaskPath { get; set; }
-        public bool ShowMask;
+        public bool ShowMask { get; set; }
+        public bool StretchMask { get; set; }
 
         public TagCloudOption()
         {

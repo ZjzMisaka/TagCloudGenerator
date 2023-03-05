@@ -181,6 +181,7 @@ namespace TagCloudGeneratorTest
             tagCloudOption.VerticalOuterMargin = 0;
             tagCloudOption.MaskPath = @"D:\cloud.png";
             tagCloudOption.ShowMask = true;
+            tagCloudOption.StretchMask = true;
 
             Dictionary<string, TagOption> tagOptionDic = new Dictionary<string, TagOption>();
             tagOptionDic["J.C.STAFF"] = new TagOption() { Rotate = 0 };
