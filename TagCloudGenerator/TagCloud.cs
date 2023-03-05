@@ -19,6 +19,7 @@ namespace TagCloudGenerator
     {
         Bitmap bmp;
         Bitmap? maskBmp = null;
+        Bitmap? resizedMaskBmp;
         TagCloudOption tagCloudOption;
 
         enum HasOutOfBoundsResult { Inside, Outside, MaskOutside }
@@ -95,7 +96,6 @@ namespace TagCloudGenerator
             }
 
             bmp = new Bitmap(width, height);
-            Bitmap? resizedMaskBmp = null;
             if (tagCloudOption.MaskPath != null)
             {
                 maskBmp = new Bitmap(tagCloudOption.MaskPath);
@@ -288,16 +288,9 @@ namespace TagCloudGenerator
                 SolidBrush backgroundColorBrush = new SolidBrush((Color)tagCloudOption.BackgroundColor);
                 biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
             }
-            if (maskBmp != null && tagCloudOption.ShowMask)
+            if (resizedMaskBmp != null && tagCloudOption.ShowMask)
             {
-                float newHeight = height;
-                float newWidth = ((float)maskBmp.Width / maskBmp.Height) * height;
-                if (newWidth > width)
-                {
-                    newWidth = width;
-                    newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
-                }
-                biggerGraphics.DrawImage(maskBmp, (width - newWidth) / 2, (height - newHeight) / 2, newWidth, newHeight);
+                biggerGraphics.DrawImage(resizedMaskBmp, 0, 0, resizedMaskBmp.Width, resizedMaskBmp.Height);
             }
             biggerGraphics.DrawImage(bmp, 0, 0, width, height);
             bmp = biggerBitmap;
@@ -405,17 +398,8 @@ namespace TagCloudGenerator
 
             Rectangle rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
 
-            BitmapData bmpData;
-            BitmapData newBmpData;
-            try
-            {
-                bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-                newBmpData = newBmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            }
-            catch
-            {
-                return true;
-            }
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData newBmpData = newBmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             bool hasOverlap = false;
 
             try
