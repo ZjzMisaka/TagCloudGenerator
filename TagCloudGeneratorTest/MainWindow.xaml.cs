@@ -172,16 +172,18 @@ namespace TagCloudGeneratorTest
             //FontFamily fontFamily = new FontFamily("Lolita", collection);
             //tagCloudOption.FontFamily = fontFamily;
             tagCloudOption.TagSpacing = 3;
-            tagCloudOption.FontSizeRange = (16, 90);
+            tagCloudOption.FontSizeRange = (16, 180);
             tagCloudOption.BackgroundColor = Color.AliceBlue;
             tagCloudOption.HorizontalCanvasGrowthStep = 5;
             tagCloudOption.VerticalCanvasGrowthStep = 5;
-            tagCloudOption.OutputSize = new ImgSize(1920, 1080);
-            tagCloudOption.HorizontalOuterMargin = 20;
-            tagCloudOption.VerticalOuterMargin = 10;
+            //tagCloudOption.OutputSize = new ImgSize(1920, 1080);
+            tagCloudOption.HorizontalOuterMargin = 0;
+            tagCloudOption.VerticalOuterMargin = 0;
+            tagCloudOption.MaskPath = @"D:\cloud.png";
+            tagCloudOption.ShowMask = true;
 
             Dictionary<string, TagOption> tagOptionDic = new Dictionary<string, TagOption>();
-            tagOptionDic["yuri"] = new TagOption() { Rotate = 0 };
+            tagOptionDic["J.C.STAFF"] = new TagOption() { Rotate = 0 };
 
             Bitmap bmp = new TagCloud(tagDic, tagCloudOption, tagOptionDic).Get();
             

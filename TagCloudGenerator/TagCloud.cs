@@ -18,7 +18,10 @@ namespace TagCloudGenerator
     public class TagCloud
     {
         Bitmap bmp;
+        Bitmap? maskBmp = null;
         TagCloudOption tagCloudOption;
+
+        enum HasOutOfBoundsResult { Inside, Outside, MaskOutside }
 
         public TagCloud(Dictionary<string, float> tagDic, TagCloudOption tagCloudOption, Dictionary<string, TagOption>? tagOptionDic = null)
         {
@@ -92,6 +95,23 @@ namespace TagCloudGenerator
             }
 
             bmp = new Bitmap(width, height);
+            Bitmap? resizedMaskBmp = null;
+            if (tagCloudOption.MaskPath != null)
+            {
+                maskBmp = new Bitmap(tagCloudOption.MaskPath);
+                float newHeight = height;
+                float newWidth = ((float)maskBmp.Width / maskBmp.Height) * height;
+                if (newWidth > width)
+                {
+                    newWidth = width;
+                    newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
+                }
+                resizedMaskBmp = new Bitmap(width, height);
+                Graphics resizedMaskGraphics = Graphics.FromImage(resizedMaskBmp);
+                resizedMaskGraphics.DrawImage(maskBmp, (width - newWidth) / 2, (height - newHeight) / 2, newWidth, newHeight);
+            }
+            
+
             Random rnd = new Random();
 
             Graphics graphicsBmp = Graphics.FromImage(bmp);
@@ -181,7 +201,9 @@ namespace TagCloudGenerator
 
                     graphics.Dispose();
 
-                    if (HasOutOfBounds(points, textSize, rotate, width, height))
+                    bool maskMode = tagCloudOption.MaskPath != null;
+                    HasOutOfBoundsResult hasOutOfBounds = HasOutOfBounds(points, textSize, rotate, width, height, maskMode);
+                    if (hasOutOfBounds == HasOutOfBoundsResult.Outside)
                     {
                         width = width + tagCloudOption.HorizontalCanvasGrowthStep;
                         height = height + tagCloudOption.VerticalCanvasGrowthStep;
@@ -193,7 +215,34 @@ namespace TagCloudGenerator
                         bmp.Dispose();
                         bmp = biggerBitmap;
                         newBmp.Dispose();
-                        --step;
+
+                        if (resizedMaskBmp != null && maskBmp != null)
+                        {
+                            resizedMaskBmp.Dispose();
+                            float newHeight = height;
+                            float newWidth = ((float)maskBmp.Width / maskBmp.Height) * height;
+                            if (newWidth > width)
+                            {
+                                newWidth = width;
+                                newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
+                            }
+                            resizedMaskBmp = new Bitmap(width, height);
+                            Graphics resizedMaskGraphics = Graphics.FromImage(resizedMaskBmp);
+                            resizedMaskGraphics.DrawImage(maskBmp, (width - newWidth) / 2, (height - newHeight) / 2, newWidth, newHeight);
+                        }
+                        if (resizedMaskBmp != null && maskBmp != null)
+                        {
+                            step = 0;
+                        }
+                        else
+                        {
+                            --step;
+                        }
+                        continue;
+                    }
+                    else if (hasOutOfBounds == HasOutOfBoundsResult.MaskOutside)
+                    {
+                        newBmp.Dispose();
                         continue;
                     }
 
@@ -201,6 +250,15 @@ namespace TagCloudGenerator
                     {
                         newBmp.Dispose();
                         continue;
+                    }
+
+                    if (resizedMaskBmp != null)
+                    {
+                        if (HasOverlap(resizedMaskBmp, newBmp, width, height, points, true))
+                        {
+                            newBmp.Dispose();
+                            continue;
+                        }
                     }
 
                     graphicsBmp = Graphics.FromImage(bmp);
@@ -230,12 +288,23 @@ namespace TagCloudGenerator
                 SolidBrush backgroundColorBrush = new SolidBrush((Color)tagCloudOption.BackgroundColor);
                 biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
             }
+            if (maskBmp != null && tagCloudOption.ShowMask)
+            {
+                float newHeight = height;
+                float newWidth = ((float)maskBmp.Width / maskBmp.Height) * height;
+                if (newWidth > width)
+                {
+                    newWidth = width;
+                    newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
+                }
+                biggerGraphics.DrawImage(maskBmp, (width - newWidth) / 2, (height - newHeight) / 2, newWidth, newHeight);
+            }
             biggerGraphics.DrawImage(bmp, 0, 0, width, height);
             bmp = biggerBitmap;
             return bmp;
         }
 
-        private bool HasOutOfBounds(PointF[] rotatedPoints, SizeF textSize, float rotate, int width, int height)
+        private HasOutOfBoundsResult HasOutOfBounds(PointF[] rotatedPoints, SizeF textSize, float rotate, int width, int height, bool maskMode = false)
         {
             float minX = float.MaxValue;
             float minY = float.MaxValue;
@@ -261,17 +330,50 @@ namespace TagCloudGenerator
                 }
             }
 
-            if (maxX >= width / 2 - this.tagCloudOption.HorizontalOuterMargin
-                || maxY >= height / 2 - this.tagCloudOption.VerticalOuterMargin
-                || minX <= -width / 2 + this.tagCloudOption.HorizontalOuterMargin
-                || minY <= -height / 2 + this.tagCloudOption.VerticalOuterMargin)
+            if (maskMode)
             {
-                return true;
+                if (width > height)
+                { 
+                    height = width;
+                }
+                else if (height > width)
+                {
+                    width = height;
+                }
             }
-            return false;
+
+            if (maskMode)
+            {
+                if (maxX >= width / 2 - this.tagCloudOption.HorizontalOuterMargin
+                    || maxY >= height / 2 - this.tagCloudOption.VerticalOuterMargin
+                    || minX <= -width / 2 + this.tagCloudOption.HorizontalOuterMargin
+                    || minY <= -height / 2 + this.tagCloudOption.VerticalOuterMargin)
+                {
+                    if (minX >= width / 2 - this.tagCloudOption.HorizontalOuterMargin
+                    || minY >= height / 2 - this.tagCloudOption.VerticalOuterMargin
+                    || maxX <= -width / 2 + this.tagCloudOption.HorizontalOuterMargin
+                    || maxY <= -height / 2 + this.tagCloudOption.VerticalOuterMargin)
+                        {
+                            return HasOutOfBoundsResult.Outside;
+                        }
+                    return HasOutOfBoundsResult.MaskOutside;
+                }
+            }
+            else
+            {
+                if (maxX >= width / 2 - this.tagCloudOption.HorizontalOuterMargin
+                    || maxY >= height / 2 - this.tagCloudOption.VerticalOuterMargin
+                    || minX <= -width / 2 + this.tagCloudOption.HorizontalOuterMargin
+                    || minY <= -height / 2 + this.tagCloudOption.VerticalOuterMargin)
+                {
+                    return HasOutOfBoundsResult.Outside;
+                }
+            }
+
+            return HasOutOfBoundsResult.Inside;
         }
 
-        unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, PointF[] rotatedPoints)
+        unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, PointF[] rotatedPoints, bool isCheckMask = false)
         {
             int minX = int.MaxValue;
             int minY = int.MaxValue;
@@ -302,8 +404,18 @@ namespace TagCloudGenerator
             maxY += height / 2;
 
             Rectangle rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            BitmapData newBmpData = newBmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+
+            BitmapData bmpData;
+            BitmapData newBmpData;
+            try
+            {
+                bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                newBmpData = newBmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            }
+            catch
+            {
+                return true;
+            }
             bool hasOverlap = false;
 
             try
@@ -322,10 +434,21 @@ namespace TagCloudGenerator
                         byte a1 = bmpRow[4 * x + 3];
                         byte a2 = newBmpRow[4 * x + 3];
 
-                        if (a1 != 0 && a2 != 0)
+                        if (!isCheckMask)
                         {
-                            hasOverlap = true;
-                            break;
+                            if (a1 != 0 && a2 != 0)
+                            {
+                                hasOverlap = true;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if (a1 == 0 && a2 != 0)
+                            {
+                                hasOverlap = true;
+                                break;
+                            }
                         }
                     }
 

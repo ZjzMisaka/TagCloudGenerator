@@ -32,6 +32,8 @@ namespace TagCloudGenerator
         public int VerticalCanvasGrowthStep { get; set; }
         public ImgSize? OutputSize { get; set; }
         public ImgSize? InitSize { get; set; }
+        public string? MaskPath { get; set; }
+        public bool ShowMask;
 
         public TagCloudOption()
         {
