@@ -2,12 +2,20 @@
 Generate a tagcloud image
 ### Getting started
 ``` csharp
+// Set the string dictionary used to output tagcloud
+// Value is the weight of the string, which can generally be set to the number of occurrences of the string
+Dictionary<string, float> tagDic = new Dictionary<string, float>();
+tagDic["J.C.STAFF"] = 32;
+```
+- If you don't need to specify special settings for individual characters
+``` csharp
 TagCloudOption tagCloudOption = new TagCloudOption();
 // Set tagCloudOption
 // tagCloudOption.Xxx = xxx;
 
 Bitmap bmp = new TagCloud(tagDic, tagCloudOption).Get();
 ```
+- If you want to specify special settings for individual characters
 ``` csharp
 TagCloudOption tagCloudOption = new TagCloudOption();
 // Set tagCloudOption
