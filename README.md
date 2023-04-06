@@ -28,51 +28,28 @@ Dictionary<string, TagOption> tagOptionDic = new Dictionary<string, TagOption>()
 Bitmap bmp = new TagCloud(tagDic, tagCloudOption, tagOptionDic).Get();
 ```
 ### TagCloudOption
-``` csharp
-// Initial font rotate angle
-// RotateType.FromList | RotateType.Random
-RotateType RotateType
-// If RotateType.Random, take random values from RandomRotateFrom and RandomRotateTo
-float RandomRotateFrom
-float RandomRotateTo
-// If RotateType.FromList, take rotate from RotateList
-List<int>? RotateList
-// Minimum pixel spacing between adjacent tags
-int TagSpacing
-// Minimum horizontal outer margin
-int HorizontalOuterMargin
-// Minimum vertical outer margin
-int VerticalOuterMargin
-// Set possible font colors for bitmap tags
-List<Color>? FontColorList
-// Set background color for bitmap tags
-Color? BackgroundColor
-// Set font family for bitmap tags
-FontFamily FontFamily
-// Set minimum and maximum font sizes
-(float, float) FontSizeRange
-// Set angle step for spiral algorithm
-double AngleStep
-// Set radius step for spiral algorithm
-double RadiusStep
-// Angle step decreasing factor
-double AngleDecreaseFactor
-// Radius step decreasing factor
-double RadiusDecreaseFactor
-// Set if is random init angle or not for spiral algorithm
-bool IsRandomInitAngle
-// Horizontal canvas growth step
-int HorizontalCanvasGrowthStep
-// Vertical canvas growth step
-int VerticalCanvasGrowthStep
-// Output bitmap image size
-ImgSize? OutputSize
-// Init bitmap image size, the canvas will grow when the canvas is filled
-ImgSize? InitSize
-// If you need to generate a tag cloud through masking, set the path for the masking image
-string? MaskPath
-// Set whether to display mask image in generated bitmap image
-bool ShowMask
-// Set whether to stretch the mask to match the canvas
-bool StretchMask
-```
+|Option|Introduce|
+|--|--|
+|RotateType RotateType|Initial font rotate angle<br>RotateType.FromList \| RotateType.Random|
+|float RandomRotateFrom|If RotateType.Random, take random values from RandomRotateFrom and RandomRotateTo|
+|float RandomRotateTo|If RotateType.Random, take random values from RandomRotateFrom and RandomRotateTo|
+|List\<int>? RotateList|If RotateType.FromList, take rotate from RotateList|
+|int TagSpacing|Minimum pixel spacing between adjacent tags|
+|int HorizontalOuterMargin|Minimum horizontal outer margin|
+|int VerticalOuterMargin|Minimum vertical outer margin|
+|List\<Color>? FontColorList|Set possible font colors for bitmap tags|
+|Color? BackgroundColor|Set background color for bitmap tags|
+|FontFamily FontFamily|Set font family for bitmap tags|
+|(float, float) FontSizeRange|Set minimum and maximum font sizes|
+|double AngleStep|Set angle step for spiral algorithm|
+|double RadiusStep|Set radius step for spiral algorithm|
+|double AngleDecreaseFactor|Angle step decreasing factor|
+|double RadiusDecreaseFactor|Radius step decreasing factor|
+|bool IsRandomInitAngle|Set if is random init angle or not for spiral algorithm|
+|int HorizontalCanvasGrowthStep|Horizontal canvas growth step|
+|int VerticalCanvasGrowthStep|Vertical canvas growth step|
+|ImgSize? OutputSize|Output bitmap image size|
+|ImgSize? InitSize|Init bitmap image size, the canvas will grow when the canvas is filled|
+|string? MaskPath|If you need to generate a tag cloud through masking, set the path for the masking image|
+|bool ShowMask|Set whether to display mask image in generated bitmap image|
+|bool StretchMask|Set whether to stretch the mask to match the canvas|
