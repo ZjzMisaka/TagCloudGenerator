@@ -1,5 +1,5 @@
 # TagCloudGenerator
-Generate a tagcloud image
+Generate a tagcloud bitmap image
 ### Getting started
 ``` csharp
 // Set the string dictionary used to output tagcloud
