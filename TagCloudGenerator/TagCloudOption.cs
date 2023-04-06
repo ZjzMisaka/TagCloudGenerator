@@ -15,10 +15,10 @@ namespace TagCloudGenerator
         public RotateType RotateType { get; set; }
         public float RandomRotateFrom { get; set; }
         public float RandomRotateTo { get; set; }
+        public List<int>? RotateList { get; set; }
         public int TagSpacing { get; set; }
         public int HorizontalOuterMargin { get; set; }
         public int VerticalOuterMargin { get; set; }
-        public List<int>? RotateList { get; set; }
         public List<Color>? FontColorList { get; set; }
         public Color? BackgroundColor { get; set; }
         public FontFamily FontFamily { get; set; }
