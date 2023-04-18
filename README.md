@@ -1,5 +1,13 @@
 # TagCloudGenerator
 Generate a tagcloud bitmap image
+### Sample
+<table>
+  <tr>
+    <td><img width=1000 align="center" src="https://github.com/ZjzMisaka/AnimeReport/blob/main/tags.bmp"/></td>
+    <td><img width=1000 align="center" src="https://github.com/ZjzMisaka/AnimeReport/blob/main/companies.bmp"/></td>
+  </tr>
+</table>
+
 ### Getting started
 ``` csharp
 // Set the string dictionary used to output tagcloud
