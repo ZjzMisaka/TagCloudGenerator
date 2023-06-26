@@ -15,12 +15,12 @@ namespace TagCloudGenerator
         public RotateType RotateType { get; set; }
         public float RandomRotateFrom { get; set; }
         public float RandomRotateTo { get; set; }
-        public List<int>? RotateList { get; set; }
+        public List<int> RotateList { get; set; }
         public int TagSpacing { get; set; }
         public int HorizontalOuterMargin { get; set; }
         public int VerticalOuterMargin { get; set; }
-        public List<Color>? FontColorList { get; set; }
-        public Color? BackgroundColor { get; set; }
+        public List<Color> FontColorList { get; set; }
+        public ColorOption BackgroundColor { get; set; }
         public FontFamily FontFamily { get; set; }
         public (float, float) FontSizeRange { get; set; }
         public double AngleStep { get; set; }
@@ -30,11 +30,21 @@ namespace TagCloudGenerator
         public bool IsRandomInitAngle { get; set; }
         public int HorizontalCanvasGrowthStep { get; set; }
         public int VerticalCanvasGrowthStep { get; set; }
-        public ImgSize? OutputSize { get; set; }
-        public ImgSize? InitSize { get; set; }
-        public string? MaskPath { get; set; }
+        public ImgSize OutputSize { get; set; }
+        public ImgSize InitSize { get; set; }
+        public string MaskPath { get; set; }
         public bool ShowMask { get; set; }
         public bool StretchMask { get; set; }
+
+        public class ColorOption
+        {
+            public ColorOption(Color color)
+            {
+                Value = color;
+            }
+
+            public Color Value { get; set; }
+        }
 
         public TagCloudOption()
         {

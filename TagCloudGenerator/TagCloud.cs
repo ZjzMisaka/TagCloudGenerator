@@ -18,13 +18,13 @@ namespace TagCloudGenerator
     public class TagCloud
     {
         Bitmap bmp;
-        Bitmap? maskBmp = null;
-        Bitmap? resizedMaskBmp;
+        Bitmap maskBmp;
+        Bitmap resizedMaskBmp;
         TagCloudOption tagCloudOption;
 
         enum HasOutOfBoundsResult { Inside, Outside, MaskOutside }
 
-        public TagCloud(Dictionary<string, float> tagDic, TagCloudOption tagCloudOption, Dictionary<string, TagOption>? tagOptionDic = null)
+        public TagCloud(Dictionary<string, float> tagDic, TagCloudOption tagCloudOption, Dictionary<string, TagOption> tagOptionDic = null)
         {
             this.tagCloudOption = tagCloudOption;
 
@@ -96,6 +96,7 @@ namespace TagCloudGenerator
             }
 
             bmp = new Bitmap(width, height);
+            Bitmap baseEmptyBitmap = (Bitmap)bmp.Clone();
             if (tagCloudOption.MaskPath != null)
             {
                 maskBmp = new Bitmap(tagCloudOption.MaskPath);
@@ -141,9 +142,9 @@ namespace TagCloudGenerator
                 int step = 0;
 
                 float rotate = 0;
-                if (tagOptionDic != null && tagOptionDic.ContainsKey(tag) && tagOptionDic[tag].Rotate.HasValue)
+                if (tagOptionDic != null && tagOptionDic.ContainsKey(tag) && tagOptionDic[tag].Rotate != null)
                 {
-                    rotate = tagOptionDic[tag].Rotate.GetValueOrDefault();
+                    rotate = tagOptionDic[tag].Rotate.Value;
                 }
                 else
                 {
@@ -175,41 +176,52 @@ namespace TagCloudGenerator
                 }
 
                 SolidBrush fontBrush;
-                if (tagOptionDic != null && tagOptionDic.ContainsKey(tag) && tagOptionDic[tag].FontColor.HasValue)
+                if (tagOptionDic != null && tagOptionDic.ContainsKey(tag) && tagOptionDic[tag].FontColor != null)
                 {
-                    fontBrush = new SolidBrush(tagOptionDic[tag].FontColor.GetValueOrDefault());
+                    fontBrush = new SolidBrush(tagOptionDic[tag].FontColor.Value);
                 }
                 else
                 {
                     fontBrush = new SolidBrush(tagCloudOption.FontColorList[rnd.Next(0, tagCloudOption.FontColorList.Count)]);
                 }
 
+                Bitmap bmpForNextTag = null;
+                Graphics graphicsForNextTag = null;
+                bool sizeChanged = true;
                 while (true)
                 {
-                    Bitmap newBmp = new Bitmap(width, height);
-                    Graphics graphics = Graphics.FromImage(newBmp);
-                    // graphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
-                    graphics.TranslateTransform(newBmp.Width / 2, newBmp.Height / 2);
-                    graphics.RotateTransform(rotate);
-                    SizeF textSize = graphics.MeasureString(tag, font);
+                    if (sizeChanged)
+                    {
+                        bmpForNextTag = (Bitmap)baseEmptyBitmap.Clone();
+                        graphicsForNextTag = Graphics.FromImage(bmpForNextTag);
+
+                        sizeChanged = false;
+                    }
+                    else
+                    {
+                        graphicsForNextTag = Graphics.FromImage(bmpForNextTag);
+                        graphicsForNextTag.Clear(Color.Transparent);
+                    }
+                    
+                    graphicsForNextTag.TranslateTransform(bmpForNextTag.Width / 2, bmpForNextTag.Height / 2);
+                    graphicsForNextTag.RotateTransform(rotate);
+                    SizeF textSize = graphicsForNextTag.MeasureString(tag, font);
                     (float, float) point = spiral.GetPoint(step);
                     ++step;
-                    graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2);
 
                     float beforeRotatedX = point.Item1 - textSize.Width / 2;
                     float beforeRotatedY = point.Item2 - textSize.Height / 2;
                     PointF[] points = { new PointF(beforeRotatedX, beforeRotatedY), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY), new PointF(beforeRotatedX, beforeRotatedY + textSize.Height), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY + textSize.Height) };
                     points = GetRotatedPoints(points, rotate);
 
+                    graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2);
                     for (int i = 1; i <= tagCloudOption.TagSpacing; ++i)
                     {
-                        graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 - i, point.Item2 - textSize.Height / 2);
-                        graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 + i, point.Item2 - textSize.Height / 2);
-                        graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2 - i);
-                        graphics.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2 + i);
+                        graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 - i, point.Item2 - textSize.Height / 2);
+                        graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 + i, point.Item2 - textSize.Height / 2);
+                        graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2 - i);
+                        graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2 + i);
                     }
-
-                    graphics.Dispose();
 
                     bool maskMode = tagCloudOption.MaskPath != null;
                     HasOutOfBoundsResult hasOutOfBounds = HasOutOfBounds(points, textSize, rotate, width, height, maskMode);
@@ -217,20 +229,24 @@ namespace TagCloudGenerator
                     {
                         width = width + tagCloudOption.HorizontalCanvasGrowthStep;
                         height = height + tagCloudOption.VerticalCanvasGrowthStep;
-                        Bitmap biggerBitmap = new Bitmap(width, height);
+                        sizeChanged = true;
+                        graphicsForNextTag.Dispose();
+
+                        baseEmptyBitmap = new Bitmap(width, height);
+                        Bitmap biggerBitmap = (Bitmap)baseEmptyBitmap.Clone();
                         Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
-                        //biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
                         biggerGraphics.DrawImage(bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
                         graphicsBmp.Dispose();
                         bmp.Dispose();
                         bmp = biggerBitmap;
-                        newBmp.Dispose();
+                        bmpForNextTag.Dispose();
 
                         if (resizedMaskBmp != null && maskBmp != null)
                         {
                             resizedMaskBmp.Dispose();
                             float newHeight;
                             float newWidth;
+                            
                             if (tagCloudOption.StretchMask)
                             {
                                 newHeight = height;
@@ -246,8 +262,10 @@ namespace TagCloudGenerator
                                     newHeight = ((float)maskBmp.Height / maskBmp.Width) * width;
                                 }
                             }
+
                             resizedMaskBmp.Dispose();
-                            resizedMaskBmp = new Bitmap(width, height);
+                            resizedMaskBmp = (Bitmap)baseEmptyBitmap.Clone();
+
                             Graphics resizedMaskGraphics = Graphics.FromImage(resizedMaskBmp);
                             resizedMaskGraphics.DrawImage(maskBmp, (width - newWidth) / 2, (height - newHeight) / 2, newWidth, newHeight);
                             resizedMaskGraphics.Dispose();
@@ -260,25 +278,26 @@ namespace TagCloudGenerator
                         {
                             --step;
                         }
+                        graphicsForNextTag.Dispose();
                         continue;
                     }
                     else if (hasOutOfBounds == HasOutOfBoundsResult.MaskOutside)
                     {
-                        newBmp.Dispose();
+                        graphicsForNextTag.Dispose();
                         continue;
                     }
 
-                    if (HasOverlap(bmp, newBmp, width, height, points))
+                    if (HasOverlap(bmp, bmpForNextTag, width, height, points))
                     {
-                        newBmp.Dispose();
+                        graphicsForNextTag.Dispose();
                         continue;
                     }
 
                     if (resizedMaskBmp != null)
                     {
-                        if (HasOverlap(resizedMaskBmp, newBmp, width, height, points, true))
+                        if (HasOverlap(resizedMaskBmp, bmpForNextTag, width, height, points, true))
                         {
-                            newBmp.Dispose();
+                            graphicsForNextTag.Dispose();
                             continue;
                         }
                     }
@@ -288,7 +307,7 @@ namespace TagCloudGenerator
                     graphicsBmp.RotateTransform(rotate);
                     graphicsBmp.DrawString(tag, font, fontBrush, -textSize.Width / 2 + point.Item1, -textSize.Height / 2 + point.Item2);
                     graphicsBmp.Dispose();
-                    newBmp.Dispose();
+                    graphicsForNextTag.Dispose();
                     break;
                 }
             }
@@ -307,7 +326,7 @@ namespace TagCloudGenerator
             Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
             if (tagCloudOption.BackgroundColor != null)
             {
-                SolidBrush backgroundColorBrush = new SolidBrush((Color)tagCloudOption.BackgroundColor);
+                SolidBrush backgroundColorBrush = new SolidBrush((Color)tagCloudOption.BackgroundColor.Value);
                 biggerGraphics.FillRectangle(backgroundColorBrush, 0, 0, width, height);
             }
             if (resizedMaskBmp != null && tagCloudOption.ShowMask)

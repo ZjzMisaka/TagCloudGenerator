@@ -173,18 +173,18 @@ namespace TagCloudGeneratorTest
             //tagCloudOption.FontFamily = fontFamily;
             tagCloudOption.TagSpacing = 3;
             tagCloudOption.FontSizeRange = (16, 180);
-            tagCloudOption.BackgroundColor = Color.AliceBlue;
+            tagCloudOption.BackgroundColor = new TagCloudOption.ColorOption(Color.AliceBlue);
             tagCloudOption.HorizontalCanvasGrowthStep = 5;
             tagCloudOption.VerticalCanvasGrowthStep = 5;
             //tagCloudOption.OutputSize = new ImgSize(1920, 1080);
             tagCloudOption.HorizontalOuterMargin = 0;
             tagCloudOption.VerticalOuterMargin = 0;
-            tagCloudOption.MaskPath = @"D:\cloud.png";
+            //tagCloudOption.MaskPath = @"D:\cloud.png";
             tagCloudOption.ShowMask = true;
             tagCloudOption.StretchMask = true;
 
             Dictionary<string, TagOption> tagOptionDic = new Dictionary<string, TagOption>();
-            tagOptionDic["J.C.STAFF"] = new TagOption() { Rotate = 0 };
+            tagOptionDic["J.C.STAFF"] = new TagOption() { Rotate = new Rotate(0) };
 
             Bitmap bmp = new TagCloud(tagDic, tagCloudOption, tagOptionDic).Get();
             
