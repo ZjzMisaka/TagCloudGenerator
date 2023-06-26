@@ -215,13 +215,6 @@ namespace TagCloudGenerator
                     points = GetRotatedPoints(points, rotate);
 
                     graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2);
-                    for (int i = 1; i <= tagCloudOption.TagSpacing; ++i)
-                    {
-                        graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 - i, point.Item2 - textSize.Height / 2);
-                        graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2 + i, point.Item2 - textSize.Height / 2);
-                        graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2 - i);
-                        graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2 + i);
-                    }
 
                     bool maskMode = tagCloudOption.MaskPath != null;
                     HasOutOfBoundsResult hasOutOfBounds = HasOutOfBounds(points, textSize, rotate, width, height, maskMode);
@@ -459,19 +452,77 @@ namespace TagCloudGenerator
                         byte a1 = bmpRow[4 * x + 3];
                         byte a2 = newBmpRow[4 * x + 3];
 
-                        if (!isCheckMask)
+                        if (CheckOverlap(a1, a2, isCheckMask))
                         {
-                            if (a1 != 0 && a2 != 0)
-                            {
-                                hasOverlap = true;
-                                break;
-                            }
+                            hasOverlap = true;
+                            break;
                         }
-                        else
+
+                        if (a2 != 0)
                         {
-                            if (a1 == 0 && a2 != 0)
+                            for (int i = 1; i <= tagCloudOption.TagSpacing; ++i)
                             {
-                                hasOverlap = true;
+                                int yForSpace;
+                                int xForSpace;
+                                byte* bmpRowForSpace;
+                                byte a1forSpace;
+
+                                xForSpace = 4 * x + 3 - 4 * i;
+                                if (xForSpace >= 0)
+                                {
+                                    yForSpace = y;
+                                    bmpRowForSpace = bmpPtr + yForSpace * stride;
+                                    a1forSpace = bmpRowForSpace[xForSpace];
+                                    if (CheckOverlap(a1forSpace, a2, isCheckMask))
+                                    {
+                                        hasOverlap = true;
+                                        break;
+                                    }
+                                }
+
+                                
+                                xForSpace = 4 * x + 3 + 4 * i;
+                                if (xForSpace < rect.Width)
+                                {
+                                    yForSpace = y;
+                                    bmpRowForSpace = bmpPtr + yForSpace * stride;
+                                    a1forSpace = bmpRowForSpace[xForSpace];
+                                    if (CheckOverlap(a1forSpace, a2, isCheckMask))
+                                    {
+                                        hasOverlap = true;
+                                        break;
+                                    }
+                                }
+
+                                yForSpace = y - i;
+                                if (yForSpace >= 0)
+                                {
+                                    xForSpace = 4 * x + 3;
+                                    bmpRowForSpace = bmpPtr + yForSpace * stride;
+                                    a1forSpace = bmpRowForSpace[xForSpace];
+                                    if (CheckOverlap(a1forSpace, a2, isCheckMask))
+                                    {
+                                        hasOverlap = true;
+                                        break;
+                                    }
+                                }
+
+                                yForSpace = y + i;
+                                if (yForSpace < rect.Height)
+                                {
+                                    xForSpace = 4 * x + 3;
+                                    bmpRowForSpace = bmpPtr + yForSpace * stride;
+                                    a1forSpace = bmpRowForSpace[xForSpace];
+                                    if (CheckOverlap(a1forSpace, a2, isCheckMask))
+                                    {
+                                        hasOverlap = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (hasOverlap)
+                            {
                                 break;
                             }
                         }
@@ -490,6 +541,25 @@ namespace TagCloudGenerator
             }
 
             return hasOverlap;
+        }
+
+        private bool CheckOverlap(byte a1, byte a2, bool isCheckMask)
+        {
+            if (!isCheckMask)
+            {
+                if (a1 != 0 && a2 != 0)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (a1 == 0 && a2 != 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private PointF[] GetRotatedPoints(PointF[] points, float angleInDegrees)
