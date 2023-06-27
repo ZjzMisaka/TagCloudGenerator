@@ -229,8 +229,6 @@ namespace TagCloudGenerator
                         baseEmptyBitmap = new Bitmap(width, height);
                         Bitmap biggerBitmap = (Bitmap)baseEmptyBitmap.Clone();
                         PasteBmp(biggerBitmap, bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
-                        // Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
-                        // biggerGraphics.DrawImage(bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
                         graphicsBmp.Dispose();
                         bmp.Dispose();
                         bmp = biggerBitmap;
@@ -432,10 +430,6 @@ namespace TagCloudGenerator
                             int* bmpPixel = (int*)(bmpRow + 4 * x);
                             int* copiedBmpPixel = (int*)(copiedBmpRow + 4 * x);
                             *bmpPixel = *copiedBmpPixel;
-                            //bmpRow[4 * x + 0] = copiedBmpRow[4 * x + 0];
-                            //bmpRow[4 * x + 1] = copiedBmpRow[4 * x + 1];
-                            //bmpRow[4 * x + 2] = copiedBmpRow[4 * x + 2];
-                            //bmpRow[4 * x + 3] = alpha;
                         }
                     }
                 }
