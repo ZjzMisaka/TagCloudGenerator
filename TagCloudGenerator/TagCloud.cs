@@ -416,20 +416,26 @@ namespace TagCloudGenerator
                 int bmpStride = bmpData.Stride;
                 int copiedBmpStride = copiedBmpData.Stride;
 
+                byte* bmpRow = null;
+                byte* copiedBmpRow = null;
+
                 for (int y = 0; y < rect.Height; ++y)
                 {
-                    byte* bmpRow = bmpPtr + y * bmpStride;
-                    byte* copiedBmpRow = copiedBmpPtr + y * copiedBmpStride;
+                    bmpRow = bmpPtr + y * bmpStride;
+                    copiedBmpRow = copiedBmpPtr + y * copiedBmpStride;
 
                     for (int x = 0; x < rect.Width; ++x)
                     {
                         byte alpha = copiedBmpRow[4 * x + 3];
                         if (alpha != 0)
                         {
-                            bmpRow[4 * x + 0] = copiedBmpRow[4 * x + 0];
-                            bmpRow[4 * x + 1] = copiedBmpRow[4 * x + 1];
-                            bmpRow[4 * x + 2] = copiedBmpRow[4 * x + 2];
-                            bmpRow[4 * x + 3] = alpha;
+                            int* bmpPixel = (int*)(bmpRow + 4 * x);
+                            int* copiedBmpPixel = (int*)(copiedBmpRow + 4 * x);
+                            *bmpPixel = *copiedBmpPixel;
+                            //bmpRow[4 * x + 0] = copiedBmpRow[4 * x + 0];
+                            //bmpRow[4 * x + 1] = copiedBmpRow[4 * x + 1];
+                            //bmpRow[4 * x + 2] = copiedBmpRow[4 * x + 2];
+                            //bmpRow[4 * x + 3] = alpha;
                         }
                     }
                 }
@@ -481,9 +487,11 @@ namespace TagCloudGenerator
                 byte* bmpPtr = (byte*)bmpData.Scan0.ToPointer();
                 int stride = bmpData.Stride;
 
+                byte* bmpRow = null;
+
                 for (int y = 0; y < rect.Height; ++y)
                 {
-                    byte* bmpRow = bmpPtr + y * stride;
+                    bmpRow = bmpPtr + y * stride;
 
                     for (int x = 0; x < rect.Width; ++x)
                     {
@@ -556,10 +564,13 @@ namespace TagCloudGenerator
                 byte* newBmpPtr = (byte*)newBmpData.Scan0.ToPointer();
                 int stride = bmpData.Stride;
 
+                byte* bmpRow = null;
+                byte* newBmpRow = null;
+
                 for (int y = 0; y < rect.Height; ++y)
                 {
-                    byte* bmpRow = bmpPtr + y * stride;
-                    byte* newBmpRow = newBmpPtr + y * stride;
+                    bmpRow = bmpPtr + y * stride;
+                    newBmpRow = newBmpPtr + y * stride;
 
                     for (int x = 0; x < rect.Width; ++x)
                     {
