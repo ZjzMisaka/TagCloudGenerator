@@ -188,6 +188,7 @@ namespace TagCloudGenerator
                 Bitmap bmpForNextTag = null;
                 Graphics graphicsForNextTag = null;
                 bool sizeChanged = true;
+                PointF[] rotatedPoints = null;
                 while (true)
                 {
                     if (sizeChanged)
@@ -199,8 +200,8 @@ namespace TagCloudGenerator
                     }
                     else
                     {
+                        ClearBmp(bmpForNextTag, width, height, rotatedPoints);
                         graphicsForNextTag = Graphics.FromImage(bmpForNextTag);
-                        graphicsForNextTag.Clear(Color.Transparent);
                     }
                     
                     graphicsForNextTag.TranslateTransform(bmpForNextTag.Width / 2, bmpForNextTag.Height / 2);
@@ -212,12 +213,12 @@ namespace TagCloudGenerator
                     float beforeRotatedX = point.Item1 - textSize.Width / 2;
                     float beforeRotatedY = point.Item2 - textSize.Height / 2;
                     PointF[] points = { new PointF(beforeRotatedX, beforeRotatedY), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY), new PointF(beforeRotatedX, beforeRotatedY + textSize.Height), new PointF(beforeRotatedX + textSize.Width, beforeRotatedY + textSize.Height) };
-                    points = GetRotatedPoints(points, rotate);
+                    rotatedPoints = GetRotatedPoints(points, rotate);
 
                     graphicsForNextTag.DrawString(tag, font, fontBrush, point.Item1 - textSize.Width / 2, point.Item2 - textSize.Height / 2);
 
                     bool maskMode = tagCloudOption.MaskPath != null;
-                    HasOutOfBoundsResult hasOutOfBounds = HasOutOfBounds(points, textSize, rotate, width, height, maskMode);
+                    HasOutOfBoundsResult hasOutOfBounds = HasOutOfBounds(rotatedPoints, textSize, rotate, width, height, maskMode);
                     if (hasOutOfBounds == HasOutOfBoundsResult.Outside)
                     {
                         width = width + tagCloudOption.HorizontalCanvasGrowthStep;
@@ -280,7 +281,7 @@ namespace TagCloudGenerator
                         continue;
                     }
 
-                    if (HasOverlap(bmp, bmpForNextTag, width, height, points))
+                    if (HasOverlap(bmp, bmpForNextTag, width, height, rotatedPoints))
                     {
                         graphicsForNextTag.Dispose();
                         continue;
@@ -288,7 +289,7 @@ namespace TagCloudGenerator
 
                     if (resizedMaskBmp != null)
                     {
-                        if (HasOverlap(resizedMaskBmp, bmpForNextTag, width, height, points, true))
+                        if (HasOverlap(resizedMaskBmp, bmpForNextTag, width, height, rotatedPoints, true))
                         {
                             graphicsForNextTag.Dispose();
                             continue;
@@ -400,6 +401,64 @@ namespace TagCloudGenerator
             return HasOutOfBoundsResult.Inside;
         }
 
+        unsafe private bool ClearBmp(Bitmap bmp, int width, int height, PointF[] rotatedPoints)
+        {
+            int minX = int.MaxValue;
+            int minY = int.MaxValue;
+            int maxX = int.MinValue;
+            int maxY = int.MinValue;
+            foreach (PointF point in rotatedPoints)
+            {
+                if (point.X > maxX)
+                {
+                    maxX = (int)point.X;
+                }
+                if (point.Y > maxY)
+                {
+                    maxY = (int)point.Y;
+                }
+                if (point.X < minX)
+                {
+                    minX = (int)point.X;
+                }
+                if (point.Y < minY)
+                {
+                    minY = (int)point.Y;
+                }
+            }
+            minX += width / 2;
+            maxX += width / 2;
+            minY += height / 2;
+            maxY += height / 2;
+
+            Rectangle rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            bool hasOverlap = false;
+
+            try
+            {
+                byte* bmpPtr = (byte*)bmpData.Scan0.ToPointer();
+                int stride = bmpData.Stride;
+
+                for (int y = 0; y < rect.Height; ++y)
+                {
+                    byte* bmpRow = bmpPtr + y * stride;
+
+                    for (int x = 0; x < rect.Width; ++x)
+                    {
+                        bmpRow[4 * x + 3] = 0;
+                    }
+                }
+            }
+            finally
+            {
+                bmp.UnlockBits(bmpData);
+            }
+
+            return hasOverlap;
+        }
+
         unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, PointF[] rotatedPoints, bool isCheckMask = false)
         {
             int minX = int.MaxValue;
@@ -425,15 +484,25 @@ namespace TagCloudGenerator
                     minY = (int)point.Y;
                 }
             }
-            minX += width / 2 - tagCloudOption.TagSpacing;
-            maxX += width / 2 + tagCloudOption.TagSpacing;
-            minY += height / 2 - tagCloudOption.TagSpacing;
-            maxY += height / 2 + tagCloudOption.TagSpacing;
+            if (!isCheckMask)
+            {
+                minX += width / 2 - tagCloudOption.TagSpacing;
+                maxX += width / 2 + tagCloudOption.TagSpacing;
+                minY += height / 2 - tagCloudOption.TagSpacing;
+                maxY += height / 2 + tagCloudOption.TagSpacing;
 
-            minX = minX < 0 ? 0 : minX;
-            maxX = maxX >= width ? width : maxX;
-            minY = minY < 0 ? 0 : minY;
-            maxY = maxY >= height ? height : maxY;
+                minX = minX < 0 ? 0 : minX;
+                maxX = maxX >= width ? width : maxX;
+                minY = minY < 0 ? 0 : minY;
+                maxY = maxY >= height ? height : maxY;
+            }
+            else
+            {
+                minX += width / 2;
+                maxX += width / 2;
+                minY += height / 2;
+                maxY += height / 2;
+            }
 
             Rectangle rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
 
