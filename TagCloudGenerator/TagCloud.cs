@@ -458,7 +458,7 @@ namespace TagCloudGenerator
                         byte a2 = newBmpRow[4 * x + 3];
                         if (a2 != 0)
                         {
-                            if (CheckAlphaValues(bmpPtr, rect.Width, rect.Height, x, y, tagCloudOption.TagSpacing, stride))
+                            if (CheckAlphaValues(bmpPtr, rect.Width, rect.Height, x, y, tagCloudOption.TagSpacing, stride, isCheckMask))
                             {
                                 hasOverlap = true;
                                 break;
@@ -481,8 +481,12 @@ namespace TagCloudGenerator
             return hasOverlap;
         }
 
-        private unsafe bool CheckAlphaValues(byte* bmpPtr, int width, int height, int x, int y, int n, int stride)
+        private unsafe bool CheckAlphaValues(byte* bmpPtr, int width, int height, int x, int y, int n, int stride, bool isCheckMask)
         {
+            if (isCheckMask)
+            {
+                n = 0;
+            }
             for (int i = -n; i <= n; i++)
             {
                 for (int j = -n; j <= n; j++)
@@ -494,9 +498,19 @@ namespace TagCloudGenerator
                     {
                         int pixelPos = (ny * stride) + nx * 4;
                         byte alpha = bmpPtr[pixelPos + 3];
-                        if (alpha != 0)
+                        if (isCheckMask)
                         {
-                            return true;
+                            if (alpha == 0)
+                            {
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            if (alpha != 0)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
