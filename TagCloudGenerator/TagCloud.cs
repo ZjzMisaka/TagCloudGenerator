@@ -423,10 +423,14 @@ namespace TagCloudGenerator
 
                     for (int x = 0; x < rect.Width; ++x)
                     {
-                        bmpRow[4 * x + 0] = copiedBmpRow[4 * x + 0];
-                        bmpRow[4 * x + 1] = copiedBmpRow[4 * x + 1];
-                        bmpRow[4 * x + 2] = copiedBmpRow[4 * x + 2];
-                        bmpRow[4 * x + 3] = copiedBmpRow[4 * x + 3];
+                        byte alpha = copiedBmpRow[4 * x + 3];
+                        if (alpha != 0)
+                        {
+                            bmpRow[4 * x + 0] = copiedBmpRow[4 * x + 0];
+                            bmpRow[4 * x + 1] = copiedBmpRow[4 * x + 1];
+                            bmpRow[4 * x + 2] = copiedBmpRow[4 * x + 2];
+                            bmpRow[4 * x + 3] = alpha;
+                        }
                     }
                 }
             }
