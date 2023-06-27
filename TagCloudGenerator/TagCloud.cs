@@ -556,9 +556,10 @@ namespace TagCloudGenerator
             {
                 n = 0;
             }
-            for (int i = -n; i <= n; i++)
+            int k = n;
+            for (int j = -n; j <= n; j++)
             {
-                for (int j = -n; j <= n; j++)
+                for (int i = -n + Math.Abs(k); i <= n - Math.Abs(k); i++)
                 {
                     int nx = x + i;
                     int ny = y + j;
@@ -583,6 +584,7 @@ namespace TagCloudGenerator
                         }
                     }
                 }
+                --k;
             }
 
             return false;
