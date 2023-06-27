@@ -31,7 +31,7 @@ TagCloudOption tagCloudOption = new TagCloudOption();
 
 Dictionary<string, TagOption> tagOptionDic = new Dictionary<string, TagOption>();
 // Set option for single text
-// tagOptionDic["J.C.STAFF"] = new TagOption() { Rotate = 0 };
+// tagOptionDic["J.C.STAFF"] = new TagOption() { Rotate = new Rotate(0) };
 
 Bitmap bmp = new TagCloud(tagDic, tagCloudOption, tagOptionDic).Get();
 ```
@@ -41,12 +41,12 @@ Bitmap bmp = new TagCloud(tagDic, tagCloudOption, tagOptionDic).Get();
 |RotateType RotateType|Initial font rotate angle<br>RotateType.FromList \| RotateType.Random|
 |float RandomRotateFrom|If RotateType.Random, take random values from RandomRotateFrom and RandomRotateTo|
 |float RandomRotateTo|If RotateType.Random, take random values from RandomRotateFrom and RandomRotateTo|
-|List\<int>? RotateList|If RotateType.FromList, take rotate from RotateList|
+|List\<int> RotateList|If RotateType.FromList, take rotate from RotateList|
 |int TagSpacing|Minimum pixel spacing between adjacent tags|
 |int HorizontalOuterMargin|Minimum horizontal outer margin|
 |int VerticalOuterMargin|Minimum vertical outer margin|
-|List\<Color>? FontColorList|Set possible font colors for bitmap tags|
-|Color? BackgroundColor|Set background color for bitmap tags|
+|List\<Color> FontColorList|Set possible font colors for bitmap tags|
+|ColorOption BackgroundColor|Set background color for bitmap tags|
 |FontFamily FontFamily|Set font family for bitmap tags|
 |(float, float) FontSizeRange|Set minimum and maximum font sizes|
 |double AngleStep|Set angle step for spiral algorithm|
@@ -56,8 +56,15 @@ Bitmap bmp = new TagCloud(tagDic, tagCloudOption, tagOptionDic).Get();
 |bool IsRandomInitAngle|Set if is random init angle or not for spiral algorithm|
 |int HorizontalCanvasGrowthStep|Horizontal canvas growth step|
 |int VerticalCanvasGrowthStep|Vertical canvas growth step|
-|ImgSize? OutputSize|Output bitmap image size|
-|ImgSize? InitSize|Init bitmap image size, the canvas will grow when the canvas is filled|
-|string? MaskPath|If you need to generate a tag cloud through masking, set the path for the masking image|
+|ImgSize OutputSize|Output bitmap image size|
+|ImgSize InitSize|Init bitmap image size, the canvas will grow when the canvas is filled|
+|string MaskPath|If you need to generate a tag cloud through masking, set the path for the masking image|
 |bool ShowMask|Set whether to display mask image in generated bitmap image|
 |bool StretchMask|Set whether to stretch the mask to match the canvas|
+
+### TagOption
+|Option|Introduce|
+|--|--|
+|Rotate Rotate|Rotate of tag|
+|FontColor FontColor|FontColor of tag|
+|FontFamily FontFamily|FontFamily of tag|

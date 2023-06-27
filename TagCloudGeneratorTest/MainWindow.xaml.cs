@@ -171,7 +171,7 @@ namespace TagCloudGeneratorTest
             //collection.AddFontFile(@"H:\AnimeReport\Fonts\Lolita.ttf");
             //FontFamily fontFamily = new FontFamily("Lolita", collection);
             //tagCloudOption.FontFamily = fontFamily;
-            tagCloudOption.TagSpacing = 20;
+            tagCloudOption.TagSpacing = 5;
             tagCloudOption.FontSizeRange = (16, 180);
             tagCloudOption.BackgroundColor = new TagCloudOption.ColorOption(Color.AliceBlue);
             tagCloudOption.HorizontalCanvasGrowthStep = 5;
@@ -179,9 +179,9 @@ namespace TagCloudGeneratorTest
             //tagCloudOption.OutputSize = new ImgSize(1920, 1080);
             tagCloudOption.HorizontalOuterMargin = 0;
             tagCloudOption.VerticalOuterMargin = 0;
-            //tagCloudOption.MaskPath = @"D:\cloud.png";
+            // tagCloudOption.MaskPath = @"H:\cloud.png";
             tagCloudOption.ShowMask = true;
-            tagCloudOption.StretchMask = true;
+            tagCloudOption.StretchMask = false;
 
             Dictionary<string, TagOption> tagOptionDic = new Dictionary<string, TagOption>();
             tagOptionDic["J.C.STAFF"] = new TagOption() { Rotate = new Rotate(0) };
