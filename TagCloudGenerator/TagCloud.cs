@@ -437,6 +437,7 @@ namespace TagCloudGenerator
             finally
             {
                 bmp.UnlockBits(bmpData);
+                copiedBmp.UnlockBits(copiedBmpData);
             }
         }
 
