@@ -228,8 +228,9 @@ namespace TagCloudGenerator
 
                         baseEmptyBitmap = new Bitmap(width, height);
                         Bitmap biggerBitmap = (Bitmap)baseEmptyBitmap.Clone();
-                        Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
-                        biggerGraphics.DrawImage(bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
+                        PasteBmp(biggerBitmap, bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
+                        // Graphics biggerGraphics = Graphics.FromImage(biggerBitmap);
+                        // biggerGraphics.DrawImage(bmp, (width - bmp.Width) / 2, (height - bmp.Height) / 2, bmp.Width, bmp.Height);
                         graphicsBmp.Dispose();
                         bmp.Dispose();
                         bmp = biggerBitmap;
@@ -399,6 +400,40 @@ namespace TagCloudGenerator
             }
 
             return HasOutOfBoundsResult.Inside;
+        }
+
+        unsafe private void PasteBmp(Bitmap bmp, Bitmap copiedBmp, int px, int py, int width, int height)
+        {
+            Rectangle rect = new Rectangle(px, py, width, height);
+
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData copiedBmpData = copiedBmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+
+            try
+            {
+                byte* bmpPtr = (byte*)bmpData.Scan0.ToPointer();
+                byte* copiedBmpPtr = (byte*)copiedBmpData.Scan0.ToPointer();
+                int bmpStride = bmpData.Stride;
+                int copiedBmpStride = copiedBmpData.Stride;
+
+                for (int y = 0; y < rect.Height; ++y)
+                {
+                    byte* bmpRow = bmpPtr + y * bmpStride;
+                    byte* copiedBmpRow = copiedBmpPtr + y * copiedBmpStride;
+
+                    for (int x = 0; x < rect.Width; ++x)
+                    {
+                        bmpRow[4 * x + 0] = copiedBmpRow[4 * x + 0];
+                        bmpRow[4 * x + 1] = copiedBmpRow[4 * x + 1];
+                        bmpRow[4 * x + 2] = copiedBmpRow[4 * x + 2];
+                        bmpRow[4 * x + 3] = copiedBmpRow[4 * x + 3];
+                    }
+                }
+            }
+            finally
+            {
+                bmp.UnlockBits(bmpData);
+            }
         }
 
         unsafe private bool ClearBmp(Bitmap bmp, int width, int height, PointF[] rotatedPoints)
