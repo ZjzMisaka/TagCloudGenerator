@@ -35,6 +35,7 @@ namespace TagCloudGenerator
         public string MaskPath { get; set; }
         public bool ShowMask { get; set; }
         public bool StretchMask { get; set; }
+        public int Accuracy { get; set; }
 
         public class ColorOption
         {
@@ -62,6 +63,7 @@ namespace TagCloudGenerator
             IsRandomInitAngle = false;
             HorizontalCanvasGrowthStep = 10;
             VerticalCanvasGrowthStep = 10;
+            Accuracy = 1;
         }
     }
 

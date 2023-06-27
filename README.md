@@ -61,6 +61,7 @@ Bitmap bmp = new TagCloud(tagDic, tagCloudOption, tagOptionDic).Get();
 |string MaskPath|If you need to generate a tag cloud through masking, set the path for the masking image|
 |bool ShowMask|Set whether to display mask image in generated bitmap image|
 |bool StretchMask|Set whether to stretch the mask to match the canvas|
+|int Accuracy|Accuracy of TagSpacing check, default = 1, if =0 then check all pixel|
 
 ### TagOption
 |Option|Introduce|

@@ -557,10 +557,21 @@ namespace TagCloudGenerator
                 n = 0;
             }
             int k = n;
-            for (int j = -n; j <= n; j++)
+            int step = tagCloudOption.Accuracy + 1;
+            for (int j = -n; j <= n; j += step)
             {
-                for (int i = -n + Math.Abs(k); i <= n - Math.Abs(k); i++)
+                int absK = Math.Abs(k);
+                if (n - j < step)
                 {
+                    j = n;
+                }
+                for (int i = -n + absK; i <= n - absK; i += step)
+                {
+                    if (n - i < step)
+                    {
+                        i = n;
+                    }
+
                     int nx = x + i;
                     int ny = y + j;
 
