@@ -519,25 +519,6 @@ namespace TagCloudGenerator
             return false;
         }
 
-        private bool CheckOverlap(byte a1, byte a2, bool isCheckMask)
-        {
-            if (!isCheckMask)
-            {
-                if (a1 != 0 && a2 != 0)
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                if (a1 == 0 && a2 != 0)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         private PointF[] GetRotatedPoints(PointF[] points, float angleInDegrees)
         {
             PointF[] rotatedPoints = new PointF[points.Length];
