@@ -1,6 +1,10 @@
 # TagCloudGenerator
+<img src="https://www.nuget.org/Content/gallery/img/logo-header.svg?sanitize=true" height="30px">
 
 TagCloudGenerator is a C# library that allows you to generate a tag cloud bitmap image from a given set of strings and their corresponding weights. You can customize the appearance of the tag cloud by specifying various options, such as font size, font color, background color, and more.
+
+### Download
+TagCloudGenerator is available as [Nuget Package](https://www.nuget.org/packages/TagCloudGenerator/) now.
 
 ## Sample Images
 
