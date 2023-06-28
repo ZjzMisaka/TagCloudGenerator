@@ -441,7 +441,7 @@ namespace TagCloudGenerator
             }
         }
 
-        unsafe private bool ClearBmp(Bitmap bmp, int width, int height, PointF[] rotatedPoints)
+        unsafe private void ClearBmp(Bitmap bmp, int width, int height, PointF[] rotatedPoints)
         {
             int minX = int.MaxValue;
             int minY = int.MaxValue;
@@ -474,7 +474,6 @@ namespace TagCloudGenerator
             Rectangle rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
 
             BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            bool hasOverlap = false;
 
             try
             {
@@ -497,8 +496,6 @@ namespace TagCloudGenerator
             {
                 bmp.UnlockBits(bmpData);
             }
-
-            return hasOverlap;
         }
 
         unsafe private bool HasOverlap(Bitmap bmp, Bitmap newBmp, int width, int height, PointF[] rotatedPoints, bool isCheckMask = false)
