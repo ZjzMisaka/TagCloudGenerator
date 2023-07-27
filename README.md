@@ -62,17 +62,15 @@ The `TagCloudOption` object allows you to customize various aspects of the tag c
 
 |Property|Description|
 |--|--|
-|RotateType RotateType|Initial font rotate angle<br>RotateType.FromList \| RotateType.Random|
-|float RandomRotateFrom|If RotateType.Random, take random values from RandomRotateFrom and RandomRotateTo|
-|float RandomRotateTo|If RotateType.Random, take random values from RandomRotateFrom and RandomRotateTo|
-|List\<int> RotateList|If RotateType.FromList, take rotate from RotateList|
+|Range RandomRotateRange|If not null, take random values from RandomRotateRange|
+|List\<int> RotateList|If RandomRotateRange is null, take rotate randomly from RotateList|
 |int TagSpacing|Minimum pixel spacing between adjacent tags|
 |int HorizontalOuterMargin|Minimum horizontal outer margin|
 |int VerticalOuterMargin|Minimum vertical outer margin|
 |List\<Color> FontColorList|Set possible font colors for bitmap tags|
 |ColorOption BackgroundColor|Set background color for bitmap tags|
 |FontFamily FontFamily|Set font family for bitmap tags|
-|(float, float) FontSizeRange|Set minimum and maximum font sizes|
+|Range FontSizeRange|Set minimum and maximum font sizes|
 |double AngleStep|Set angle step for spiral algorithm|
 |double RadiusStep|Set radius step for spiral algorithm|
 |double AngleDecreaseFactor|Angle step decreasing factor|
