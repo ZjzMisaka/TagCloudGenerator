@@ -8,13 +8,21 @@ using System.Threading.Tasks;
 
 namespace TagCloudGenerator
 {
-    public enum RotateType { Random, FromList }
+    public class Range 
+    {
+        public float From { get; set; }
+        public float To { get; set; }
+        public Range(float from, float to) 
+        {
+            From = from;
+            To = to;
+        }
+    }
+
     [SupportedOSPlatform("windows7.0")]
     public class TagCloudOption
     {
-        public RotateType RotateType { get; set; }
-        public float RandomRotateFrom { get; set; }
-        public float RandomRotateTo { get; set; }
+        public Range RandomRotateRange { get; set; }
         public List<int> RotateList { get; set; }
         public int TagSpacing { get; set; }
         public int HorizontalOuterMargin { get; set; }
@@ -22,7 +30,7 @@ namespace TagCloudGenerator
         public List<Color> FontColorList { get; set; }
         public ColorOption BackgroundColor { get; set; }
         public FontFamily FontFamily { get; set; }
-        public (float, float) FontSizeRange { get; set; }
+        public Range FontSizeRange { get; set; }
         public double AngleStep { get; set; }
         public double RadiusStep { get; set; }
         public double AngleDecreaseFactor { get; set; }
@@ -49,7 +57,6 @@ namespace TagCloudGenerator
 
         public TagCloudOption()
         {
-            RotateType = RotateType.FromList;
             RotateList = new List<int>() { 0 };
             FontColorList = new List<Color>() { Color.Black };
             FontFamily = new FontFamily("Comic Sans MS");

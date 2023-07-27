@@ -31,9 +31,9 @@ namespace TagCloudGeneratorTest
             InitializeComponent();
 
             Dictionary<string, float> tagDic = new Dictionary<string, float>();
-            tagDic["J.C.STAFF"] = 32;
-            tagDic["A-1 Pictures"] = 23;
-            tagDic["动画工房"] = 22;
+            tagDic["J.C.STAFF"] = 62;
+            tagDic["A-1 Pictures"] = 43;
+            tagDic["动画工房"] = 32;
             tagDic["SILVER LINK."] = 20;
             tagDic["京都动画"] = 16;
             tagDic["SHAFT"] = 12;
@@ -171,8 +171,8 @@ namespace TagCloudGeneratorTest
             //collection.AddFontFile(@"H:\AnimeReport\Fonts\Lolita.ttf");
             //FontFamily fontFamily = new FontFamily("Lolita", collection);
             //tagCloudOption.FontFamily = fontFamily;
-            tagCloudOption.TagSpacing = 20;
-            tagCloudOption.FontSizeRange = (16, 180);
+            tagCloudOption.TagSpacing = 5;
+            tagCloudOption.FontSizeRange = new TagCloudGenerator.Range(16, 180);
             tagCloudOption.BackgroundColor = new TagCloudOption.ColorOption(Color.AliceBlue);
             tagCloudOption.HorizontalCanvasGrowthStep = 5;
             tagCloudOption.VerticalCanvasGrowthStep = 5;

@@ -51,10 +51,10 @@ namespace TagCloudGenerator
                 throw new Exception("FontColorList is null");
             }
 
-            if (tagCloudOption.FontSizeRange != (0, 0))
+            if (tagCloudOption.FontSizeRange != null)
             {
-                float minFontSize = tagCloudOption.FontSizeRange.Item1;
-                float maxFontSize = tagCloudOption.FontSizeRange.Item2;
+                float minFontSize = tagCloudOption.FontSizeRange.From;
+                float maxFontSize = tagCloudOption.FontSizeRange.To;
 
                 float range = maxFontSize - minFontSize;
 
@@ -148,13 +148,13 @@ namespace TagCloudGenerator
                 }
                 else
                 {
-                    if (tagCloudOption.RotateType == RotateType.FromList)
+                    if (tagCloudOption.RandomRotateRange == null)
                     {
                         rotate = tagCloudOption.RotateList[rnd.Next(0, tagCloudOption.RotateList.Count)];
                     }
                     else
                     {
-                        rotate = rnd.Next((int)tagCloudOption.RandomRotateFrom, (int)tagCloudOption.RandomRotateTo);
+                        rotate = rnd.Next((int)tagCloudOption.RandomRotateRange.From, (int)tagCloudOption.RandomRotateRange.To);
                     }
                 }
 
